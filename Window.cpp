@@ -200,19 +200,33 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		}
 		else if (key == GLFW_KEY_A)
 		{
-			//Move left
+			//Move camera left
+			glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
+			cam_dir = glm::normalize(glm::cross(cam_dir, cam_up));
+			cam_pos = cam_pos - cam_dir;
+			cam_look_at = cam_look_at - cam_dir;
 		}
 		else if (key == GLFW_KEY_D)
 		{
-			//Move right
+			//Move camera right
+			glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
+			cam_dir = glm::normalize(glm::cross(cam_dir, cam_up));
+			cam_pos = cam_pos + cam_dir;
+			cam_look_at = cam_look_at + cam_dir;
 		}
 		else if (key == GLFW_KEY_W)
 		{
-			//Move up
+			//Move camera forwards
+			glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
+			cam_pos = cam_pos + cam_dir;
+			cam_look_at = cam_look_at + cam_dir;
 		}
 		else if (key == GLFW_KEY_S)
 		{
-			//Move down
+			//Move camera backwards
+			glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
+			cam_pos = cam_pos - cam_dir;
+			cam_look_at = cam_look_at - cam_dir;
 		}
 		else if (key == GLFW_KEY_Z)
 		{
@@ -241,12 +255,13 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			if (mods == GLFW_MOD_SHIFT)
 			{
 				//Reset rotation and scale
-				
 			}
 			else
 			{
-				//Reset position
-				
+				//Reset camera zoom
+				glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
+				cam_dir = glm::vec3(cam_dir.x * 20, cam_dir.y * 20, cam_dir.z * 20);
+				cam_pos = cam_look_at - cam_dir;
 			}
 		}
 	}
@@ -258,6 +273,7 @@ void Window::mouse_callback(GLFWwindow* window, int button, int action, int mods
 
 void Window::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	//Moving the mouse with left click rotates the camera in place
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
 		glm::vec3 prev = trackBallMapping(glm::vec3(cursorPosX, cursorPosY, 0.0f));
@@ -267,15 +283,17 @@ void Window::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 		if (vel > 0.0001f)
 		{
 			glm::vec3 rotAxis = glm::cross(prev, next);
-			float rotAngle = vel * 0.01f;
+			float rotAngle = vel * 0.02f;
 			glm::vec4 camDir = glm::vec4(cam_look_at - cam_pos, 1.0f);
-			camDir = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis) * camDir;
+			camDir = glm::rotate(glm::mat4(1.0f), -rotAngle, rotAxis) * camDir;
 			cam_look_at = glm::vec3(cam_pos.x + camDir.x, cam_pos.y + camDir.y, cam_pos.z + camDir.z);
 		}
 	}
+	//Moving the mouse with right click moves the camera up and down with respect to the world
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 	{
-		float xDist = (xpos - cursorPosX) * 0.2f;
+		//float xDist = (xpos - cursorPosX) * 0.2f;
+		float xDist = 0;
 		float yDist = (ypos - cursorPosY) * 0.2f;
 		//Vertical movement vector
 		glm::vec3 cam_move_v = glm::vec3(cam_up.x * yDist, cam_up.y * yDist, cam_up.z * yDist);
@@ -291,9 +309,13 @@ void Window::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 
 void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	//Scrolling zooms in and out
 	glm::vec3 cam_dir = glm::normalize(cam_look_at - cam_pos);
 	cam_dir = glm::vec3(cam_dir.x * yoffset, cam_dir.y * yoffset, cam_dir.z * yoffset);
-	cam_look_at = cam_look_at + cam_dir;
+	if (yoffset < 0 || glm::distance(cam_look_at, cam_pos) > glm::length(cam_dir))
+	{
+		cam_pos += cam_dir;
+	}
 }
 
 glm::vec3 Window::trackBallMapping(glm::vec3 point)
