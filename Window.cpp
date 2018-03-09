@@ -2,7 +2,6 @@
 
 const char* window_title = "GLFW Starter Project";
 Cube * skybox;
-OBJObject* bunny;
 GLint shaderProgram;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
@@ -31,35 +30,14 @@ glm::vec3 curve5[4] = {
 	glm::vec3(20.0f, 0.0f, -24.0f), glm::vec3(16.0f, 0.0f, -28.0f), glm::vec3(-4.0f, 0.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f)
 };
 
-struct dirLight
-{
-	glm::vec3 color;
-	glm::vec3 direction;
-};
-
-struct pointLight
-{
-	glm::vec3 color;
-	glm::vec3 position;
-};
-
-struct spotLight
-{
-	glm::vec3 color;
-	glm::vec3 position;
-	glm::vec3 direction;
-	float cutoff;
-	float exponent;
-};
-
 // On some systems you need to change this to the absolute path
 #define VERTEX_SHADER_PATH "../shader.vert"
 #define FRAGMENT_SHADER_PATH "../shader.frag"
 
 // Default camera parameters
-glm::vec3 cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
-glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
-glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
+glm::vec3 Window::cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
+glm::vec3 Window::cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
+glm::vec3 Window::cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 
 int Window::width;
 int Window::height;
@@ -70,7 +48,6 @@ glm::mat4 Window::V;
 void Window::initialize_objects()
 {
 	skybox = new Cube();
-	//bunny = new OBJObject("bunny.obj");
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -83,7 +60,6 @@ void Window::initialize_objects()
 void Window::clean_up()
 {
 	delete(skybox);
-	//delete(bunny);
 	delete(scenegraph);
 	delete(c);
 	glDeleteProgram(shaderProgram);
@@ -175,8 +151,6 @@ void Window::display_callback(GLFWwindow* window)
 	// Render
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	skybox->draw(shaderProgram);
-	//bunny->draw(shaderProgram, glm::vec3(0.9f, 0.9f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec2(0.0f), cam_pos, glm::vec4(0.1f, 1.0f, 0.5f, 32.0f));
-	//bunny->draw(shaderProgram, V);
 	glm::mat4 M = glm::translate(glm::mat4(1.0f), glm::vec3(points[timer * 3], points[timer * 3 + 1], points[timer * 3 + 2]));
 	scenegraph->draw(V * M);
 	c->draw(shaderProgram);

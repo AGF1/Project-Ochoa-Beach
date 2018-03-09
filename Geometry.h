@@ -16,6 +16,7 @@
 
 #include "Node.h"
 #include "OBJObject.h"
+#include "Window.h"
 
 class Geometry : public Node
 {

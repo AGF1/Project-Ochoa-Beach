@@ -5,7 +5,6 @@
 OBJObject::OBJObject(const char *filepath)
 {
 	toWorld = glm::mat4(1.0f);
-	origPos = toWorld;
 	this->scaleOffset = 1.0f;
 	this->xOffset = 0.0f;
 	this->yOffset = 0.0f;
@@ -29,7 +28,6 @@ OBJObject::OBJObject(const char *filepath, float scale, float xOffset, float yOf
 	this->zOffset = zOffset;
 	this->rotateDir = rotateDir;
 	toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(xOffset, yOffset, zOffset)) * toWorld;
-	origPos = toWorld;
 	parse(filepath);
 	this->angle = 0.0f;
 	this->scale = scale;
@@ -117,40 +115,6 @@ void OBJObject::parse(const char *filepath)
 		}
 	}
 	fclose(objFile);
-	float xDif = xMax - xMin;
-	float yDif = yMax - yMin;
-	float zDif = zMax - zMin;
-	float scaleBy;
-	if (xDif > yDif)
-	{
-		if (xDif > zDif)
-		{
-			scaleBy = xDif;
-		}
-		else
-		{
-			scaleBy = zDif;
-		}
-	}
-	else if (yDif > zDif)
-	{
-		scaleBy = yDif;
-	}
-	else
-	{
-		scaleBy = zDif;
-	}
-	scaleBy = 2 / scaleBy;
-	float xCen = (xMax + xMin) / 2;
-	float yCen = (yMax + yMin) / 2;
-	float zCen = (zMax + zMin) / 2;
-	toCenter = glm::translate(glm::mat4(1.0f), glm::vec3(-xCen, -yCen, -zCen));
-	toScale = glm::scale(glm::mat4(1.0f), glm::vec3(scaleBy, scaleBy, scaleBy));
-	origPos = toScale * toCenter;
-	xOffset -= xCen;
-	yOffset -= yCen;
-	zOffset -= zCen;
-	scaleOffset *= scaleBy;
 }
 
 void OBJObject::init()
@@ -201,28 +165,22 @@ void OBJObject::init()
 	glBindVertexArray(0);
 }
 
-void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 pLightColor, glm::vec3 pLightPos, glm::vec3 sLightColor, glm::vec3 sLightPos, glm::vec3 sLightAim, glm::vec2 sLightParams, glm::vec3 camPos, glm::vec4 materialParams)
+void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, glm::mat4 modelview)
 {
 	//Material Params: ambient, diffuse, specular, shininess
 	// Calculate the combination of the model and view (camera inverse) matrices
-	glm::mat4 model = toWorld * origPos;
+	glm::mat4 model = toWorld;
 	// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
 	// Consequently, we need to forward the projection, view, and model matrices to the shader programs
 	// Get the location of the uniform variables "projection" and "modelview"
 	uProjection = glGetUniformLocation(shaderProgram, "projection");
 	uModel = glGetUniformLocation(shaderProgram, "model");
 	uView = glGetUniformLocation(shaderProgram, "view");
+	uModelView = glGetUniformLocation(shaderProgram, "modelview");
 
 	uObjColor = glGetUniformLocation(shaderProgram, "objectColor");
 	uLightColor = glGetUniformLocation(shaderProgram, "lightColor");
 	uLightDir = glGetUniformLocation(shaderProgram, "lightDir");
-	uPLightColor = glGetUniformLocation(shaderProgram, "pLightColor");
-	uPLightPos = glGetUniformLocation(shaderProgram, "pLightPos");
-	uSLightColor = glGetUniformLocation(shaderProgram, "sLightColor");
-	uSLightPos = glGetUniformLocation(shaderProgram, "sLightPos");
-	uSLightAim = glGetUniformLocation(shaderProgram, "sLightAim");
-	uSLightCut = glGetUniformLocation(shaderProgram, "sLightCut");
-	uSLightExp = glGetUniformLocation(shaderProgram, "sLightExp");
 	uCamPos = glGetUniformLocation(shaderProgram, "camPos");
 
 	uAmb = glGetUniformLocation(shaderProgram, "ambientModifier");
@@ -231,20 +189,15 @@ void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightCo
 	uShine = glGetUniformLocation(shaderProgram, "shininess");
 
 	uMode = glGetUniformLocation(shaderProgram, "mode");
+
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(uModel, 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
+	glUniformMatrix4fv(uModelView, 1, GL_FALSE, &modelview[0][0]);
 	glUniform3fv(uObjColor, 1, &(objColor.x));
 	glUniform3fv(uLightColor, 1, &(lightColor.x));
 	glUniform3fv(uLightDir, 1, &(lightDir.x));
-	glUniform3fv(uPLightColor, 1, &(pLightColor.x));
-	glUniform3fv(uPLightPos, 1, &(pLightPos.x));
-	glUniform3fv(uSLightColor, 1, &(sLightColor.x));
-	glUniform3fv(uSLightPos, 1, &(sLightPos.x));
-	glUniform3fv(uSLightAim, 1, &(sLightAim.x));
-	glUniform1fv(uSLightCut, 1, &(sLightParams.x));
-	glUniform1fv(uSLightExp, 1, &(sLightParams.y));
 	glUniform3fv(uCamPos, 1, &(camPos.x));
 	glUniform1fv(uAmb, 1, &materialParams.x);
 	glUniform1fv(uDif, 1, &materialParams.y);
@@ -259,71 +212,8 @@ void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightCo
 	glBindVertexArray(0);
 }
 
-void OBJObject::draw(GLuint shaderProgram, glm::mat4 modelview)
-{
-	// Calculate the combination of the model and view (camera inverse) matrices
-	//glm::mat4 model = toWorld * origPos;
-	// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
-	// Consequently, we need to forward the projection, view, and model matrices to the shader programs
-	// Get the location of the uniform variables "projection" and "modelview"
-	//uProjection = glGetUniformLocation(shaderProgram, "projection");
-	//uModel = glGetUniformLocation(shaderProgram, "model");
-	//uView = glGetUniformLocation(shaderProgram, "view");
-
-	//uObjColor = glGetUniformLocation(shaderProgram, "objectColor");
-	//uLightColor = glGetUniformLocation(shaderProgram, "lightColor");
-	//uLightPos = glGetUniformLocation(shaderProgram, "lightPos");
-	//uCamPos = glGetUniformLocation(shaderProgram, "camPos");
-
-	//uDif = glGetUniformLocation(shaderProgram, "diffuseModifier");
-	//uSpec = glGetUniformLocation(shaderProgram, "specularModifier");
-
-	uMode = glGetUniformLocation(shaderProgram, "mode");
-	uModelView = glGetUniformLocation(shaderProgram, "modelview");
-	// Now send these values to the shader program
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
-	//glUniformMatrix4fv(uModel, 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
-	glUniformMatrix4fv(uModelView, 1, GL_FALSE, &modelview[0][0]);
-	//glUniform3fv(uObjColor, 1, &(objColor.x));
-	//glUniform3fv(uLightColor, 1, &(lightColor.x));
-	//glUniform3fv(uLightPos, 1, &(lightPos.x));
-	//glUniform3fv(uCamPos, 1, &(camPos.x));
-	//glUniform1fv(uDif, 1, &diffuse);
-	//glUniform1fv(uSpec, 1, &specular);
-	glUniform1i(uMode, 1);
-	// Now draw the object. We simply need to bind the VAO associated with it.
-	glBindVertexArray(VAO);
-	// Tell OpenGL to draw with triangles, using the number of indices, the type of the indices, and the offset to start from
-	glDrawElements(GL_TRIANGLES, indices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
-	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
-	glBindVertexArray(0);
-}
-
 void OBJObject::update()
 {
-	//spin(1.0f);
-}
-
-void OBJObject::spin(float deg)
-{
-	angle += deg;
-	if (angle > 360.0f || angle < -360.0f) angle = 0.0f;
-	// This creates the matrix to rotate the object
-	toWorld = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-	if (rotateDir == 'x') {
-		toWorld = glm::rotate(glm::mat4(1.0f), angle / 180.0f * glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)) * toWorld;
-	}
-	else if (rotateDir == 'y') {
-		toWorld = glm::rotate(glm::mat4(1.0f), angle / 180.0f * glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * toWorld;
-	}
-	else if (rotateDir == 'z') {
-		toWorld = glm::rotate(glm::mat4(1.0f), angle / 180.0f * glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * toWorld;
-	}
-	else
-	{
-	}
-	toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z)) * toWorld;
 }
 
 void OBJObject::move(float x, float y, float z)
