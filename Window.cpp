@@ -2,33 +2,17 @@
 
 const char* window_title = "GLFW Starter Project";
 Cube * skybox;
+OBJObject* anchor;
+OBJObject* beachball;
+OBJObject* chair;
+OBJObject* crab;
+OBJObject* hut;
+OBJObject* chair2;
+OBJObject* rock;
+OBJObject* rock2;
 GLint shaderProgram;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
-Node* scenegraph;
-Curve* c;
-GLfloat points[2250];
-int timer = 0;
-
-glm::vec3 curve1[4] = {
-	glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(4.0f, 0.0f, 4.0f), glm::vec3(12.0f, 0.0f, 4.0f), glm::vec3(16.0f, 0.0f, 0.0f)
-};
-
-glm::vec3 curve2[4] = {
-	glm::vec3(16.0f, 0.0f, 0.0f), glm::vec3(20.0f, 0.0f, -4.0f), glm::vec3(28.0f, 0.0f, -8.0f), glm::vec3(32.0f, 0.0f, -4.0f)
-};
-
-glm::vec3 curve3[4] = {
-	glm::vec3(32.0f, 0.0f, -4.0f), glm::vec3(36.0f, 0.0f, 0.0f), glm::vec3(44.0f, 0.0f, -24.0f), glm::vec3(36.0f, 0.0f, -20.0f)
-};
-
-glm::vec3 curve4[4] = {
-	glm::vec3(36.0f, 0.0f, -20.0f),glm::vec3(28.0f, 0.0f, -16.0f),glm::vec3(24.0f, 0.0f, -20.0f),glm::vec3(20.0f, 0.0f, -24.0f)
-};
-
-glm::vec3 curve5[4] = {
-	glm::vec3(20.0f, 0.0f, -24.0f), glm::vec3(16.0f, 0.0f, -28.0f), glm::vec3(-4.0f, 0.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f)
-};
 
 // On some systems you need to change this to the absolute path
 #define VERTEX_SHADER_PATH "../shader.vert"
@@ -51,17 +35,29 @@ void Window::initialize_objects()
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-	scenegraph = assembleMyRobotArmyOfEvil();
-	genPoints();
-	c = new Curve(points);
+	anchor = new OBJObject("../assets/object_files/Anchor.obj");
+	beachball = new OBJObject("../assets/object_files/beachball.obj");
+	chair = new OBJObject("../assets/object_files/beachchair_C.obj");
+	crab = new OBJObject("../assets/object_files/Citiezn_snips.obj");
+	hut = new OBJObject("../assets/object_files/Hut_obj.obj");
+	chair2 = new OBJObject("../assets/object_files/obj.obj");
+	rock = new OBJObject("../assets/object_files/Stone_F_3.obj");
+	rock2 = new OBJObject("../assets/object_files/Stone_Forest_1.obj");
+	beachball->move(20.0f, 0.0f, 0.0f);
+	chair->move(-20.0f, 0.0f, 0.0f);
+	crab->move(0.0f, 0.0f, 20.0f);
+	hut->move(0.0f, 0.0f, -20.0f);
+	chair2->move(20.0f, 0.0f, 20.0f);
+	rock->move(20.0f, 0.0f, -20.0f);
+	rock2->move(-20.0f, 0.0f, 20.0f);
+	anchor->move(-20.0f, 0.0f, -20.0f);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
 void Window::clean_up()
 {
 	delete(skybox);
-	delete(scenegraph);
-	delete(c);
+	delete(anchor);
 	glDeleteProgram(shaderProgram);
 }
 
@@ -134,10 +130,6 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	// Call the update function
-	scenegraph->update();
-	timer++;
-	if (timer >= 750) timer = 0;
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -151,9 +143,14 @@ void Window::display_callback(GLFWwindow* window)
 	// Render
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	skybox->draw(shaderProgram);
-	glm::mat4 M = glm::translate(glm::mat4(1.0f), glm::vec3(points[timer * 3], points[timer * 3 + 1], points[timer * 3 + 2]));
-	scenegraph->draw(V * M);
-	c->draw(shaderProgram);
+	anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 32.0f));
+	beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 32.0f));
+	chair->draw(shaderProgram, glm::vec3(0.6f, 0.5f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f));
+	crab->draw(shaderProgram, glm::vec3(0.6f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f));
+	hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f));
+	chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f));
+	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f));
+	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f));
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -299,131 +296,4 @@ glm::vec3 Window::trackBallMapping(glm::vec3 point)
 	d = d < 1.0 ? d : 1.0;
 	v.z = sqrtf(1.001 - d*d);
 	return glm::normalize(v);
-}
-
-Node* Window::assembleMyRobotArmyOfEvil()
-{
-	Transform* root = new Transform(glm::mat4(1.0f), false);
-
-	Geometry* body = new Geometry(shaderProgram);
-	body->init("body.obj");
-	Geometry* head = new Geometry(shaderProgram);
-	head->init("head.obj");
-	Geometry* limb = new Geometry(shaderProgram);
-	limb->init("limb.obj");
-	Geometry* eyeball = new Geometry(shaderProgram);
-	eyeball->init("eyeball.obj");
-	Geometry* antenna = new Geometry(shaderProgram);
-	antenna->init("antenna.obj");
-
-	Transform* bodyTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.02f, 0.02f, 0.02f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>() / -2, glm::vec3(1.0f, 0.0f, 0.0f)), false);
-	bodyTransform->addChild(body);
-
-	Transform* headTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f)), false);
-	headTransform->addChild(head);
-	bodyTransform->addChild(headTransform);
-
-	Transform* rightArmTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 25.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-26.75f, 0.0f, 45.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(26.75f, 0.0f, -45.0f)), true);
-	rightArmTransform->addChild(limb);
-	bodyTransform->addChild(rightArmTransform);
-
-	Transform* leftArmTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(52.25f, 0.0f, 25.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-26.75f, 0.0f, 45.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(26.75f, 0.0f, -45.0f)), true);
-	leftArmTransform->addChild(limb);
-	bodyTransform->addChild(leftArmTransform);
-
-	Transform* rightLegTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(15.0f, 0.0f, -15.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-26.75f, 0.0f, 45.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(26.75f, 0.0f, -45.0f)), true);
-	rightLegTransform->addChild(limb);
-	bodyTransform->addChild(rightLegTransform);
-
-	Transform* leftLegTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(37.25f, 0.0f, -15.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-26.75f, 0.0f, 45.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(26.75f, 0.0f, -45.0f)), true);
-	leftLegTransform->addChild(limb);
-	bodyTransform->addChild(leftLegTransform);
-
-	Transform* rightEyeballTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(-7.5f, -4.0f, 87.5f)), false);
-	rightEyeballTransform->addChild(eyeball);
-	headTransform->addChild(rightEyeballTransform);
-
-	Transform* leftEyeballTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(7.5f, -4.0f, 87.5f)), false);
-	leftEyeballTransform->addChild(eyeball);
-	headTransform->addChild(leftEyeballTransform);
-
-	Transform* rightAntennaTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(-7.5f, 0.0f, 87.5f)), false);
-	rightAntennaTransform->addChild(antenna);
-	headTransform->addChild(rightAntennaTransform);
-
-	Transform* leftAntennaTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(7.5f, 0.0f, 87.5f)) * glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)), false);
-	leftAntennaTransform->addChild(antenna);
-	headTransform->addChild(leftAntennaTransform);
-
-	//Instancing
-	for (float i = -5.0f; i <= 5.0f; i += 2.5f)
-	{
-		for (float j = -5.0f; j <= 5.0f; j += 2.5f)
-		{
-			Transform* robotTransform = new Transform(glm::translate(glm::mat4(1.0f), glm::vec3(i, 0.0f, j)), false);
-			robotTransform->addChild(bodyTransform);
-			root->addChild(robotTransform);
-		}
-	}
-
-	return root;
-}
-
-void Window::genPoints()
-{
-	for (int i = 0; i < 150; i++)
-	{
-		float t = i / 150.0f;
-		glm::vec3 x = (glm::pow(1 - t, 3)) * curve1[0]
-			+ (3 * glm::pow(1 - t, 2) * t) * curve1[1]
-			+ (3 * (1 - t) * glm::pow(t, 2)) * curve1[2]
-			+ (glm::pow(t, 3)) * curve1[3];
-		points[3 * i] = x.x;
-		points[3 * i + 1] = x.y;
-		points[3 * i + 2] = x.z;
-	}
-	for (int i = 0; i < 150; i++)
-	{
-		float t = i / 150.0f;
-		glm::vec3 x = (glm::pow(1 - t, 3)) * curve2[0]
-			+ (3 * glm::pow(1 - t, 2) * t) * curve2[1]
-			+ (3 * (1 - t) * glm::pow(t, 2)) * curve2[2]
-			+ (glm::pow(t, 3)) * curve2[3];
-		points[3 * i + 450] = x.x;
-		points[3 * i + 451] = x.y;
-		points[3 * i + 452] = x.z;
-	}
-	for (int i = 0; i < 150; i++)
-	{
-		float t = i / 150.0f;
-		glm::vec3 x = (glm::pow(1 - t, 3)) * curve3[0]
-			+ (3 * glm::pow(1 - t, 2) * t) * curve3[1]
-			+ (3 * (1 - t) * glm::pow(t, 2)) * curve3[2]
-			+ (glm::pow(t, 3)) * curve3[3];
-		points[3 * i + 900] = x.x;
-		points[3 * i + 901] = x.y;
-		points[3 * i + 902] = x.z;
-	}
-	for (int i = 0; i < 150; i++)
-	{
-		float t = i / 150.0f;
-		glm::vec3 x = (glm::pow(1 - t, 3)) * curve4[0]
-			+ (3 * glm::pow(1 - t, 2) * t) * curve4[1]
-			+ (3 * (1 - t) * glm::pow(t, 2)) * curve4[2]
-			+ (glm::pow(t, 3)) * curve4[3];
-		points[3 * i + 1350] = x.x;
-		points[3 * i + 1351] = x.y;
-		points[3 * i + 1352] = x.z;
-	}
-	for (int i = 0; i < 150; i++)
-	{
-		float t = i / 150.0f;
-		glm::vec3 x = (glm::pow(1 - t, 3)) * curve5[0]
-			+ (3 * glm::pow(1 - t, 2) * t) * curve5[1]
-			+ (3 * (1 - t) * glm::pow(t, 2)) * curve5[2]
-			+ (glm::pow(t, 3)) * curve5[3];
-		points[3 * i + 1800] = x.x;
-		points[3 * i + 1801] = x.y;
-		points[3 * i + 1802] = x.z;
-	}
 }

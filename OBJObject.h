@@ -23,6 +23,7 @@ private:
 	glm::mat4 toWorld;
 	glm::mat4 toCenter;
 	glm::mat4 toScale;
+	glm::mat4 origPos;
 	float angle;
 	float scaleOffset;
 	float scale;
@@ -41,7 +42,7 @@ public:
 
 	void parse(const char* filepath);
 	void init();
-	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, glm::mat4 modelview);
+	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams);
 	void update();
 	void move(float x, float y, float z);
 	void resize(float amt);

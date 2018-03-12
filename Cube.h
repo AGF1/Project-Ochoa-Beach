@@ -26,12 +26,12 @@ public:
 	glm::mat4 toWorld;
 	std::vector<char*> faces
 	{
-		"Skybox_Water222_right.ppm",
-		"Skybox_Water222_left.ppm",
-		"Skybox_Water222_top.ppm",
-		"Skybox_Water222_base.ppm",
-		"Skybox_Water222_front.ppm",
-		"Skybox_Water222_back.ppm"
+		"../assets/skybox_images/TropicalSunnyDayLeft2048.ppm",
+		"../assets/skybox_images/TropicalSunnyDayRight2048.ppm",
+		"../assets/skybox_images/TropicalSunnyDayUp2048.ppm",
+		"../assets/skybox_images/TropicalSunnyDayDown2048.ppm",
+		"../assets/skybox_images/TropicalSunnyDayFront2048.ppm",
+		"../assets/skybox_images/TropicalSunnyDayBack2048.ppm"
 	};
 
 	void draw(GLuint);

@@ -5,7 +5,6 @@
 // Note that you do not have access to the vertex shader's default output, gl_Position.
 in vec3 FragPos;
 in vec3 Normal;
-in vec3 Eye;
 in vec3 TexCoords;
 
 // You can output many things. The first vec4 type output determines the color of the fragment
@@ -27,11 +26,34 @@ void main()
     if (mode == 0)
 	{
 		//Phong Shading Code
-	    vec3 ambient = ambientModifier * vec3(1.0f, 1.0f, 1.0f);
+	    vec3 ambient = ambientModifier * objectColor;
 	    vec3 norm = normalize(Normal);
-		vec3 eyeNorm = normalize(Eye);
 
 	    float diff = max(dot(norm, lightDir), 0.0);
+		if (diff < 0.1)
+		{
+		    diff = 0;
+		}
+		else if (diff < 0.3)
+		{
+		    diff = 0.2;
+		}
+		else if (diff < 0.5)
+		{
+		    diff = 0.4;
+		}
+		else if (diff < 0.7)
+		{
+		    diff = 0.6;
+		}
+		else if (diff < 0.9)
+		{
+		    diff = 0.8;
+		}
+		else
+		{
+		    diff = 1.0;
+		}
 
 	    vec3 diffuse = diffuseModifier * diff * lightColor;
 
@@ -39,13 +61,44 @@ void main()
 	    vec3 reflectDir = reflect(-lightDir, norm);
 
 	    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+		if (spec < 0.1)
+		{
+		    spec = 0;
+		}
+		else if (spec < 0.3)
+		{
+		    spec = 0.2;
+		}
+		else if (spec < 0.5)
+		{
+		    spec = 0.4;
+		}
+		else if (spec < 0.7)
+		{
+		    spec = 0.6;
+		}
+		else if (spec < 0.9)
+		{
+		    spec = 0.8;
+		}
+		else
+		{
+		    spec = 1.0;
+		}
 
 	    vec3 specular = specularModifier * spec * lightColor;
 		vec3 result = vec3(0.0, 0.0, 0.0);
 
 		result = (ambient + diffuse + specular) * objectColor;
 
-        color = vec4(result, 1.0);
+		if (max(dot(norm, viewDir), 0) < 0.15)
+		{
+			color = vec4(0.0, 0.0, 0.0, 1.0);
+		}
+		else
+		{
+			color = vec4(result, 1.0);
+		}
 	}
 	else if (mode == 1)
 	{

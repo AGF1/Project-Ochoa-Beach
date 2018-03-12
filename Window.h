@@ -39,8 +39,6 @@ public:
 	static void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static glm::vec3 trackBallMapping(glm::vec3 point);
-	static Node* assembleMyRobotArmyOfEvil();
-	static void genPoints();
 };
 
 #endif

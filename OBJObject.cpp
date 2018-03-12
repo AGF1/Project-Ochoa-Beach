@@ -5,6 +5,7 @@
 OBJObject::OBJObject(const char *filepath)
 {
 	toWorld = glm::mat4(1.0f);
+	origPos = toWorld;
 	this->scaleOffset = 1.0f;
 	this->xOffset = 0.0f;
 	this->yOffset = 0.0f;
@@ -28,6 +29,7 @@ OBJObject::OBJObject(const char *filepath, float scale, float xOffset, float yOf
 	this->zOffset = zOffset;
 	this->rotateDir = rotateDir;
 	toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(xOffset, yOffset, zOffset)) * toWorld;
+	origPos = toWorld;
 	parse(filepath);
 	this->angle = 0.0f;
 	this->scale = scale;
@@ -48,18 +50,21 @@ OBJObject::~OBJObject()
 
 void OBJObject::parse(const char *filepath)
 {
-	// Populate the face indices, vertices, and normals vectors with the OBJ Object data
-	FILE* objFile = fopen(filepath, "rb");
-	if (objFile == NULL)
-	{
-		exit(-1);
-	}
 	float xMax = LONG_MIN;
 	float xMin = LONG_MAX;
 	float yMax = LONG_MIN;
 	float yMin = LONG_MAX;
 	float zMax = LONG_MIN;
 	float zMin = LONG_MAX;
+	std::vector<glm::vec3> rawVertices;
+	std::vector<glm::vec3> rawNormals;
+	std::vector<std::pair<unsigned int, unsigned int>> rawIndices;
+	// Populate the face indices, vertices, and normals vectors with the OBJ Object data
+	FILE* objFile = fopen(filepath, "rb");
+	if (objFile == NULL)
+	{
+		exit(-1);
+	}
 	while (!feof(objFile))
 	{
 		char c1 = fgetc(objFile);
@@ -72,49 +77,60 @@ void OBJObject::parse(const char *filepath)
 				GLfloat x, y, z;
 				//Vertex normals (vn) have x, y, z coordinates
 				fscanf(objFile, "%f %f %f", &x, &y, &z);
-				normals.push_back(x);
-				normals.push_back(y);
-				normals.push_back(z);
+				rawNormals.push_back(glm::vec3(x, y, z));
 			}
 			else if (c2 == ' ')
 			{
 				GLfloat x, y, z;
 				//Vertices (v) have x, y, z coordinates
 				fscanf(objFile, "%f %f %f", &x, &y, &z);
+				rawVertices.push_back(glm::vec3(x, y, z));
 				if (x > xMax) xMax = x;
 				if (x < xMin) xMin = x;
 				if (y > yMax) yMax = y;
 				if (y < yMin) yMin = y;
 				if (z > zMax) zMax = z;
 				if (z < zMin) zMin = z;
-				vertices.push_back(x);
-				vertices.push_back(y);
-				vertices.push_back(z);
 			}
 		}
 		else if (c1 == 'f')
 		{
 			if (fgetc(objFile) != ' ') continue;
-			unsigned int v1, v2, v3, vn1, vn2, vn3;
-			fscanf(objFile, "%u//%u %u//%u %u//%u", &v1, &vn1, &v2, &vn2, &v3, &vn3);
+			unsigned int v1, v2, v3, vn1, vn2, vn3, vt1, vt2, vt3;
+			fscanf(objFile, "%u/%u/%u %u/%u/%u %u/%u/%u", &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3);
 			v1 -= 1;
 			v2 -= 1;
 			v3 -= 1;
-			//vn1 -= 1;
-			//vn2 -= 1;
-			//vn3 -= 1;
-			indices.push_back(v1);
-			indices.push_back(v2);
-			indices.push_back(v3);
-			//indices.push_back(vn1);
-			//indices.push_back(vn2);
-			//indices.push_back(vn3);
+			vn1 -= 1;
+			vn2 -= 1;
+			vn3 -= 1;
+			rawIndices.push_back(std::pair<unsigned int, unsigned int>(v1, vn1));
+			rawIndices.push_back(std::pair<unsigned int, unsigned int>(v2, vn2));
+			rawIndices.push_back(std::pair<unsigned int, unsigned int>(v3, vn3));
 		}
 		else
 		{
 		}
 	}
 	fclose(objFile);
+	for (unsigned int i = 0; i < rawIndices.size(); i++)
+	{
+		indices.push_back(i);
+		vertices.push_back(rawVertices[rawIndices[i].first].x);
+		vertices.push_back(rawVertices[rawIndices[i].first].y);
+		vertices.push_back(rawVertices[rawIndices[i].first].z);
+		normals.push_back(rawNormals[rawIndices[i].second].x);
+		normals.push_back(rawNormals[rawIndices[i].second].y);
+		normals.push_back(rawNormals[rawIndices[i].second].z);
+	}
+	float xDist = xMax - xMin;
+	float yDist = yMax - yMin;
+	float zDist = zMax - zMin;
+	float xCenter = xMin + (xDist / 2.0f);
+	float yCenter = yMin + (yDist / 2.0f);
+	float zCenter = zMin + (zDist / 2.0f);
+	float maxDist = glm::max(xDist, glm::max(yDist, zDist));
+	origPos = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f / maxDist, 10.0f / maxDist, 10.0f / maxDist)) * glm::translate(glm::mat4(1.0f), glm::vec3(-xCenter, -yCenter, -zCenter));
 }
 
 void OBJObject::init()
@@ -165,11 +181,12 @@ void OBJObject::init()
 	glBindVertexArray(0);
 }
 
-void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, glm::mat4 modelview)
+void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams)
 {
 	//Material Params: ambient, diffuse, specular, shininess
 	// Calculate the combination of the model and view (camera inverse) matrices
-	glm::mat4 model = toWorld;
+	glm::mat4 model = toWorld * origPos;
+	glm::mat4 modelview = Window::V * model;
 	// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
 	// Consequently, we need to forward the projection, view, and model matrices to the shader programs
 	// Get the location of the uniform variables "projection" and "modelview"

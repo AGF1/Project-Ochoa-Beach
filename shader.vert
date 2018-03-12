@@ -15,6 +15,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform int mode;
 uniform mat4 modelview;
+uniform vec3 camPos;
 
 // Outputs of the vertex shader are the inputs of the same name of the fragment shader.
 // The default output, gl_Position, should be assigned something. You can define as many
@@ -27,7 +28,6 @@ out vec3 TexCoords;
 void main()
 {
     vec4 pos = modelview * vec4(position.x, position.y, position.z, 1.0);
-    Eye = vec3(-pos);
 
 	if (mode == 2)
 	{
@@ -40,6 +40,6 @@ void main()
 		gl_Position = projection * modelview * vec4(position.x, position.y, position.z, 1.0);
 	}
     FragPos = vec3(model * vec4(position.x, position.y, position.z, 1.0));
-    Normal = mat3(transpose(inverse(modelview))) * normal;
+    Normal = mat3(transpose(inverse(model))) * normal;
 	TexCoords = position;
 }
