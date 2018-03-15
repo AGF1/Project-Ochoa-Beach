@@ -19,6 +19,7 @@ uniform float diffuseModifier;
 uniform float specularModifier;
 uniform float shininess;
 uniform int mode;
+uniform bool toon;
 uniform samplerCube skybox;
 
 void main()
@@ -30,29 +31,32 @@ void main()
 	    vec3 norm = normalize(Normal);
 
 	    float diff = max(dot(norm, lightDir), 0.0);
-		if (diff < 0.1)
+		if (toon)
 		{
-		    diff = 0;
-		}
-		else if (diff < 0.3)
-		{
-		    diff = 0.2;
-		}
-		else if (diff < 0.5)
-		{
-		    diff = 0.4;
-		}
-		else if (diff < 0.7)
-		{
-		    diff = 0.6;
-		}
-		else if (diff < 0.9)
-		{
-		    diff = 0.8;
-		}
-		else
-		{
-		    diff = 1.0;
+			if (diff < 0.1)
+			{
+			    diff = 0;
+			}
+			else if (diff < 0.3)
+			{
+			    diff = 0.2;
+			}
+			else if (diff < 0.5)
+			{
+			    diff = 0.4;
+			}
+			else if (diff < 0.7)
+			{
+			    diff = 0.6;
+			}
+			else if (diff < 0.9)
+			{
+				diff = 0.8;
+			}
+			else
+			{
+				diff = 1.0;
+			}
 		}
 
 	    vec3 diffuse = diffuseModifier * diff * lightColor;
@@ -61,29 +65,32 @@ void main()
 	    vec3 reflectDir = reflect(-lightDir, norm);
 
 	    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-		if (spec < 0.1)
+		if (toon)
 		{
-		    spec = 0;
-		}
-		else if (spec < 0.3)
-		{
-		    spec = 0.2;
-		}
-		else if (spec < 0.5)
-		{
-		    spec = 0.4;
-		}
-		else if (spec < 0.7)
-		{
-		    spec = 0.6;
-		}
-		else if (spec < 0.9)
-		{
-		    spec = 0.8;
-		}
-		else
-		{
-		    spec = 1.0;
+			if (spec < 0.1)
+			{
+				spec = 0;
+			}
+			else if (spec < 0.3)
+			{
+				spec = 0.2;
+			}
+			else if (spec < 0.5)
+			{
+				spec = 0.4;
+			}
+			else if (spec < 0.7)
+			{
+				spec = 0.6;
+			}
+			else if (spec < 0.9)
+			{
+				spec = 0.8;
+			}
+			else
+			{
+				spec = 1.0;
+			}
 		}
 
 	    vec3 specular = specularModifier * spec * lightColor;
@@ -91,7 +98,7 @@ void main()
 
 		result = (ambient + diffuse + specular) * objectColor;
 
-		if (max(dot(norm, viewDir), 0) < 0.15)
+		if (max(dot(norm, viewDir), 0) < 0.15 && toon)
 		{
 			color = vec4(0.0, 0.0, 0.0, 1.0);
 		}
