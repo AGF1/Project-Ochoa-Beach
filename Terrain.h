@@ -35,17 +35,21 @@ public:
 
 	void init_buffers();
 	unsigned char* loadPPM(const char* filename, int& width, int& height);
+	void loadTexture();
 	void draw(GLuint);
 };
 
 // Hardcoded floor for checking if texture code works
-const GLfloat vertices[] = {
-	-500.0f,  500.0f, -500.0f,
-	500.0f,  500.0f, -500.0f,
-	500.0f,  500.0f,  500.0f,
-	500.0f,  500.0f,  500.0f,
-	-500.0f,  500.0f,  500.0f,
-	-500.0f,  500.0f, -500.0f,
+
+const GLfloat vertices_test[4][3] = {
+	// "Front" vertices
+	{ 200.0,  200.0,  200.0 },{ -200.0,  200.0, 200.0 },
+	// "Back" vertices
+	{ 200.0,  200.0, -200.0 },{ -200.0,  200.0, -200.0 }
+};
+
+const GLuint indices_test[6] = {
+	 1, 0, 2, 3
 };
 
 #endif

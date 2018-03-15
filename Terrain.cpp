@@ -1,6 +1,10 @@
 #include "Terrain.h"
+#include "Window.h"
+
+#define TEXTURE_PATH "../assets/textures/sand.ppm"
 
 Terrain::Terrain() {
+	toWorld = glm::mat4(1.0f);
 	xz_scale = 1.0f;
 	height_scale = 1.0f;
 
@@ -8,6 +12,7 @@ Terrain::Terrain() {
 }
 
 Terrain::Terrain(float xz_scale, float height_scale) {
+	toWorld = glm::mat4(1.0f);
 	this->xz_scale = xz_scale;
 	this->height_scale = height_scale;
 
@@ -20,10 +25,35 @@ Terrain::~Terrain() {
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+	glDeleteTextures(1, &textureID);
 }
 
 void Terrain::init_buffers() {
+	// Create array object and buffers. Remember to delete your buffers when the object is destroyed!
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 
+	// Bind the Vertex Array Object (VAO) first, then bind the associated buffers to it.
+	glBindVertexArray(VAO);
+
+	// Now bind a VBO to it as a GL_ARRAY_BUFFER. 
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData populates the most recently bound buffer with data starting at the 3rd argument and ending after
+	// the 2nd argument number of indices. How does OpenGL know how long an index spans? Go to glVertexAttribPointer.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_test), &vertices_test, GL_STATIC_DRAW);
+	// Enable the usage of layout location 0 (check the vertex shader to see what this is)
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
+	// In what order should it draw those vertices? That's why we'll need a GL_ELEMENT_ARRAY_BUFFER for this.
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_test), indices_test, GL_STATIC_DRAW);
+
+	// Unbind the currently bound buffer so that we don't accidentally make unwanted changes to it.
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// Unbind the VAO now so we don't accidentally tamper with it.
+	glBindVertexArray(0);
 }
 
 /** Load a ppm file from disk.
@@ -85,6 +115,63 @@ unsigned char* Terrain::loadPPM(const char* filename, int& width, int& height)
 	return rawData;
 }
 
-void Terrain::draw(GLuint shaderProgram) {
+void Terrain::loadTexture() {
+	int twidth, theight;
+	unsigned char* tdata;  // texture pixel data
 
+	// Create ID for texture
+	glGenTextures(1, &textureID);
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	// Some lighting/filtering settings
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);	// Don't let bytes be padded
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	// set GL_MODULATE to mix texture with polygon color for shading
+
+	tdata = loadPPM(TEXTURE_PATH, twidth, theight);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void Terrain::draw(GLuint shaderProgram) {
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_FALSE);
+
+	// Calculate the combination of the model and view (camera inverse) matrices
+	glm::mat4 modelview = Window::V * toWorld;
+
+	uProjection = glGetUniformLocation(shaderProgram, "projection");
+	uModelview = glGetUniformLocation(shaderProgram, "modelview");
+
+	// Now send these values to the shader program
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
+	glUniformMatrix4fv(uModelview, 1, GL_FALSE, &modelview[0][0]);
+
+	// Draw Terrain
+	glBindVertexArray(VAO);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "terrain"), 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
+	glBindVertexArray(0);
+	// Deactivate and unbind skybox texture
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDisable(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
 }
