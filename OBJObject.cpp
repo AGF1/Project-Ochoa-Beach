@@ -181,7 +181,7 @@ void OBJObject::init()
 	glBindVertexArray(0);
 }
 
-void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams)
+void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon)
 {
 	//Material Params: ambient, diffuse, specular, shininess
 	// Calculate the combination of the model and view (camera inverse) matrices
@@ -207,6 +207,8 @@ void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightCo
 
 	uMode = glGetUniformLocation(shaderProgram, "mode");
 
+	uToon = glGetUniformLocation(shaderProgram, "toon");
+
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(uModel, 1, GL_FALSE, &model[0][0]);
@@ -221,6 +223,7 @@ void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightCo
 	glUniform1fv(uSpec, 1, &materialParams.z);
 	glUniform1fv(uShine, 1, &materialParams.w);
 	glUniform1i(uMode, 0);
+	glUniform1i(uToon, toon);
 	// Now draw the object. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);
 	// Tell OpenGL to draw with triangles, using the number of indices, the type of the indices, and the offset to start from

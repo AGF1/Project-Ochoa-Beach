@@ -42,7 +42,7 @@ public:
 
 	void parse(const char* filepath);
 	void init();
-	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams);
+	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon);
 	void update();
 	void move(float x, float y, float z);
 	void resize(float amt);
@@ -56,7 +56,7 @@ public:
 
 	// These variables are needed for the shader program
 	GLuint VBO[2], VAO, EBO;
-	GLuint uProjection, uModel, uView, uObjColor, uLightColor, uLightDir, uCamPos, uAmb, uDif, uSpec, uShine, uMode, uModelView;
+	GLuint uProjection, uModel, uView, uObjColor, uLightColor, uLightDir, uCamPos, uAmb, uDif, uSpec, uShine, uMode, uModelView, uToon;
 };
 
 #endif

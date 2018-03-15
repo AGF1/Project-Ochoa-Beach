@@ -42,6 +42,9 @@
     <ClInclude Include="..\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -49,6 +52,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="..\shader.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\terrainShader.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\terrainShader.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -78,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
