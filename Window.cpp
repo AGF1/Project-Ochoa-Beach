@@ -11,12 +11,16 @@ OBJObject* chair2;
 OBJObject* rock;
 OBJObject* rock2;
 GLint shaderProgram;
+GLint terrainShader;
+Terrain * ground;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
 
 // On some systems you need to change this to the absolute path
 #define VERTEX_SHADER_PATH "../shader.vert"
 #define FRAGMENT_SHADER_PATH "../shader.frag"
+#define TERR_SHADER_VERT_PATH "../terrainShader.vert"
+#define TERR_SHADER_FRAG_PATH "../terrainShader.frag"
 
 // Default camera parameters
 glm::vec3 Window::cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
@@ -32,9 +36,12 @@ glm::mat4 Window::V;
 void Window::initialize_objects()
 {
 	skybox = new Cube();
+	ground = new Terrain();
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+	terrainShader - LoadShaders(TERR_SHADER_VERT_PATH, TERR_SHADER_FRAG_PATH);
+
 	anchor = new OBJObject("../assets/object_files/Anchor.obj");
 	beachball = new OBJObject("../assets/object_files/beachball.obj");
 	chair = new OBJObject("../assets/object_files/beachchair_C.obj");
@@ -58,7 +65,9 @@ void Window::clean_up()
 {
 	delete(skybox);
 	delete(anchor);
+	delete(ground);
 	glDeleteProgram(shaderProgram);
+	glDeleteProgram(terrainShader);
 }
 
 GLFWwindow* Window::create_window(int width, int height)
@@ -151,6 +160,10 @@ void Window::display_callback(GLFWwindow* window)
 	chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f));
 	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f));
 	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f));
+
+	glUseProgram(terrainShader);
+	glDisable(GL_CULL_FACE);
+	ground->draw(terrainShader);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

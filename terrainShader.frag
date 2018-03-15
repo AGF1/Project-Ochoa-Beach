@@ -10,4 +10,7 @@ uniform sampler2D terrain;
 // You can output many things. The first vec4 type output determines the color of the fragment
 out vec4 color;
 
-void main() { color = texture(terrain, texPos); }
+void main() { 
+	//color = texture(terrain, texPos); 
+	color = vec4(0.0, 0.0, 0.0, 1.0);
+}

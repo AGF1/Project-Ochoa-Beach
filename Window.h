@@ -17,6 +17,7 @@
 #include "Geometry.h"
 #include "shader.h"
 #include "Curve.h"
+#include "Terrain.h"
 
 class Window
 {
