@@ -50,6 +50,7 @@ Cube::~Cube()
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+	glDeleteTextures(1, &textureID);
 }
 
 void Cube::draw(GLuint shaderProgram)
@@ -82,6 +83,12 @@ void Cube::draw(GLuint shaderProgram)
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
+
+	// Deactivate and unbind skybox texture
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDisable(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_CUBE_MAP);
 }
 
 void Cube::update()

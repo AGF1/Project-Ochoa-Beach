@@ -9,7 +9,7 @@ Terrain::Terrain() {
 	height_scale = 1.0f;
 
 	init_buffers();
-	//loadTexture();
+	loadTexture();
 }
 
 Terrain::Terrain(float xz_scale, float height_scale) {
@@ -125,7 +125,7 @@ void Terrain::loadTexture() {
 	glGenTextures(1, &textureID);
 
 	// Set this texture to be the one we are working with
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	// Some lighting/filtering settings
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);	// Don't let bytes be padded
@@ -135,19 +135,13 @@ void Terrain::loadTexture() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
 
 	// Set bi-linear filtering for both minification and magnification
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Terrain::draw(GLuint shaderProgram) {
-	//glDepthFunc(GL_LEQUAL);
-	//glDepthMask(GL_FALSE);
-
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * toWorld;
 
@@ -160,20 +154,18 @@ void Terrain::draw(GLuint shaderProgram) {
 
 	// Draw Terrain
 	glBindVertexArray(VAO);
-	//glActiveTexture(GL_TEXTURE0);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "terrain"), 0);
-	//glBindTexture(GL_TEXTURE_2D, textureID);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "terrain"), 0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
 	// Deactivate and unbind skybox texture
-	//glBindTexture(GL_TEXTURE_2D, 0);
-	//glDisable(GL_TEXTURE0);
-	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_2D);
 
-	//glDepthMask(GL_TRUE);
-	//glDepthFunc(GL_LESS);
 }

@@ -11,6 +11,7 @@ uniform sampler2D terrain;
 out vec4 color;
 
 void main() { 
-	//color = texture(terrain, texPos); 
-	color = vec4(0.0, 0.0, 0.0, 1.0);
+	vec2 tex2D = vec2(texPos.x, texPos.z);
+	color = texture(terrain, tex2D); 
+	//color = vec4(0.0, 0.0, 0.0, 1.0);
 }
