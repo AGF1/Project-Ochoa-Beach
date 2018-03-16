@@ -2,7 +2,7 @@
 // This is a sample fragment shader.
 
 // Inputs to the fragment shader are the outputs of the same name from the vertex shader.
-in vec3 texPos;
+in vec2 texPos;
 
 // Uniform variables
 uniform sampler2D terrain;
@@ -11,7 +11,6 @@ uniform sampler2D terrain;
 out vec4 color;
 
 void main() { 
-	vec2 tex2D = vec2(texPos.x, texPos.z);
-	color = texture(terrain, tex2D); 
+	color = texture(terrain, texPos); 
 	//color = vec4(0.0, 0.0, 0.0, 1.0);
 }
