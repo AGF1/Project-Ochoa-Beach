@@ -6,21 +6,25 @@
 #define TEXTURE_PATH "../assets/textures/sand.ppm"
 #define HEIGHTMAP_PATH "../assets/SanDiegoTerrain.jpg"
 
-// Default constructor where scale is 0.5f
+// Default constructor with set scales and heightmap
 Terrain::Terrain() {
 	toWorld = glm::mat4(1.0f);
 	xz_scale = 0.5f;
 	height_scale = 10.0f;
-
+	ground_translate = -9.0f;
+	heightmap_path = "../assets/SanDiegoTerrain.jpg";
+	
 	loadHeightmap();
 	loadTexture();
 }
 
-// More granular control with this constructor over scale
-Terrain::Terrain(float xz_scale, float height_scale) {
+// Constructor that controls scaling, ground level, and heightmap path
+Terrain::Terrain(float xz_scale, float height_scale, float ground_translate, const char * hmPath) {
 	toWorld = glm::mat4(1.0f);
 	this->xz_scale = xz_scale;
 	this->height_scale = height_scale;
+	this->ground_translate = ground_translate;
+	heightmap_path = hmPath;
 
 	loadHeightmap();
 	loadTexture();
@@ -189,8 +193,9 @@ void Terrain::loadHeightmap() {
 	int map_width, map_height, channels;	
 	
 	// Get Terrain data and dimensions
-	unsigned char * hmData = SOIL_load_image(HEIGHTMAP_PATH, &map_width, &map_height, &channels, SOIL_LOAD_L);
+	unsigned char * hmData = SOIL_load_image(heightmap_path, &map_width, &map_height, &channels, SOIL_LOAD_L);
 	if (map_width < 0) { std::cout << "Heightmap not loading correctly!" << std::endl; return; }
+	//std::cout << map_width << " " << map_height << std::endl;
 
 	// Resize buffers
 	int num_vertices = map_width * map_height;
@@ -220,7 +225,7 @@ void Terrain::loadHeightmap() {
 
 			// Vertex coordinates
 			float x = (tex_s * terrWidth) - centerTerrWidth;
-			float y = (heightValue * height_scale) - 15.0f;
+			float y = (heightValue * height_scale) + ground_translate;
 			float z = (tex_t * terrHeight) - centerTerrHeight;
 
 			normals[index] = glm::vec3(0);	// Fill out later

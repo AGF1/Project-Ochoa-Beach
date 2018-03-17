@@ -21,10 +21,12 @@
 class Terrain {
 private:
 	glm::mat4 toWorld;
+	const char * heightmap_path;
 
 	// Scale size of terrain
 	float xz_scale;
 	float height_scale;
+	float ground_translate;	// Move the ground down
 
 	// Heightmap dimensions
 	glm::vec2 hMapDimensions;
@@ -35,11 +37,11 @@ private:
 	GLuint textureID;
 
 	// Rename buffer objects for ease of reading
-	typedef std::vector<glm::vec3>  PosBuff;
-	//typedef std::vector<glm::vec4>  ColorBuff;
-	typedef std::vector<glm::vec3>  NormBuff;
-	typedef std::vector<glm::vec2>  TexCoordBuff;
-	typedef std::vector<GLuint>     IndexBuff;
+	typedef std::vector<glm::vec3> PosBuff;
+	//typedef std::vector<glm::vec4> ColorBuff;
+	typedef std::vector<glm::vec3> NormBuff;
+	typedef std::vector<glm::vec2> TexCoordBuff;
+	typedef std::vector<GLuint> IndexBuff;
 
 	// Buffers
 	PosBuff vertices;
@@ -50,7 +52,7 @@ private:
 
 public:
 	Terrain();
-	Terrain(float, float);
+	Terrain(float, float, float, const char *);
 	~Terrain();
 
 	void init_buffers();

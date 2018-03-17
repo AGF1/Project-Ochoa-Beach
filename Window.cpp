@@ -12,16 +12,24 @@ OBJObject* rock;
 OBJObject* rock2;
 GLint shaderProgram;
 GLint terrainShader;
-Terrain * ground;
+Terrain * default_ground;
+Terrain * lake_ground;
+Terrain * coast_ground;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
 bool toon = true;
+
+unsigned int ground_type = 0;	// Default ground to render based off of SD heightmap
 
 // On some systems you need to change this to the absolute path
 #define VERTEX_SHADER_PATH "../shader.vert"
 #define FRAGMENT_SHADER_PATH "../shader.frag"
 #define TERR_SHADER_VERT_PATH "../terrainShader.vert"
 #define TERR_SHADER_FRAG_PATH "../terrainShader.frag"
+
+#define SD_TERRAIN 0
+#define LAKE_TERRAIN 1
+#define COAST_TERRAIN 2
 
 // Default camera parameters
 glm::vec3 Window::cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
@@ -37,7 +45,9 @@ glm::mat4 Window::V;
 void Window::initialize_objects()
 {
 	skybox = new Cube();
-	ground = new Terrain();
+	default_ground = new Terrain();
+	lake_ground = new Terrain(1.0f, 60.0f, -10.0f, "../assets/lake.png");
+	coast_ground = new Terrain(1.0f, 130.0f, -10.0f, "../assets/coast.jpg");
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -66,7 +76,9 @@ void Window::clean_up()
 {
 	delete(skybox);
 	delete(anchor);
-	delete(ground);
+	delete(default_ground);
+	delete(lake_ground);
+	delete(coast_ground);
 	glDeleteProgram(shaderProgram);
 	glDeleteProgram(terrainShader);
 }
@@ -162,9 +174,20 @@ void Window::display_callback(GLFWwindow* window)
 	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
 	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
 
-	glDisable(GL_CULL_FACE);
 	glUseProgram(terrainShader);
-	ground->draw(terrainShader);
+	
+	// Draw different types of terrain
+	switch (ground_type) {
+	case 0:
+		default_ground->draw(terrainShader);
+		break;
+	case 1:
+		lake_ground->draw(terrainShader);
+		break;
+	case 2:
+		coast_ground->draw(terrainShader);
+		break;
+	}
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -253,6 +276,9 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		{
 			//Toggle toon shading
 			toon = !toon;
+		}
+		else if (key == GLFW_KEY_T) {
+			ground_type = (ground_type + 1) % 3;	// Toggle between different grounds
 		}
 	}
 }
