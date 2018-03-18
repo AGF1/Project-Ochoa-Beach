@@ -12,9 +12,11 @@ OBJObject* rock;
 OBJObject* rock2;
 GLint shaderProgram;
 GLint terrainShader;
+GLint waterShader;
 Terrain * default_ground;
 Terrain * lake_ground;
 Terrain * coast_ground;
+Water * water;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
 bool toon = true;
@@ -26,6 +28,8 @@ unsigned int ground_type = 0;	// Default ground to render based off of SD height
 #define FRAGMENT_SHADER_PATH "../shader.frag"
 #define TERR_SHADER_VERT_PATH "../terrainShader.vert"
 #define TERR_SHADER_FRAG_PATH "../terrainShader.frag"
+#define WATER_SHADER_VERT_PATH "../water.vert"
+#define WATER_SHADER_FRAG_PATH "../water.frag"
 
 #define SD_TERRAIN 0
 #define LAKE_TERRAIN 1
@@ -46,12 +50,14 @@ void Window::initialize_objects()
 {
 	skybox = new Cube();
 	default_ground = new Terrain();
-	lake_ground = new Terrain(1.0f, 60.0f, -10.0f, "../assets/lake.png");
-	coast_ground = new Terrain(1.0f, 130.0f, -10.0f, "../assets/coast.jpg");
+	lake_ground = new Terrain(2.0f, 75.0f, -12.0f, "../assets/lake.png");
+	coast_ground = new Terrain(2.0f, 150.0f, -12.0f, "../assets/coast.jpg");
+	water = new Water();
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 	terrainShader = LoadShaders(TERR_SHADER_VERT_PATH, TERR_SHADER_FRAG_PATH);
+	waterShader = LoadShaders(WATER_SHADER_VERT_PATH, WATER_SHADER_FRAG_PATH);
 
 	anchor = new OBJObject("../assets/object_files/Anchor.obj");
 	beachball = new OBJObject("../assets/object_files/beachball.obj");
@@ -79,8 +85,10 @@ void Window::clean_up()
 	delete(default_ground);
 	delete(lake_ground);
 	delete(coast_ground);
+	delete(water);
 	glDeleteProgram(shaderProgram);
 	glDeleteProgram(terrainShader);
+	glDeleteProgram(waterShader);
 }
 
 GLFWwindow* Window::create_window(int width, int height)
@@ -188,6 +196,9 @@ void Window::display_callback(GLFWwindow* window)
 		coast_ground->draw(terrainShader);
 		break;
 	}
+	
+	glUseProgram(waterShader);
+	water->draw(waterShader);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

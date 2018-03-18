@@ -64,16 +64,4 @@ public:
 	void draw(GLuint);
 };
 
-// Hardcoded floor for checking if texture code works
-const GLfloat vertices_test[4][3] = {
-	// "Front" vertices
-	{ 500.0,  -5.0,  500.0 },{ -500.0,  -5.0, 500.0 },
-	// "Back" vertices
-	{ 500.0,  -5.0, -500.0 },{ -500.0,  -5.0, -500.0 }
-};
-
-const GLuint indices_test[6] = {
-	 1, 0, 2, 2, 3, 1
-};
-
 #endif
