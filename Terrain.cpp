@@ -230,7 +230,7 @@ void Terrain::loadHeightmap() {
 
 			normals[index] = glm::vec3(0);	// Fill out later
 			vertices[index] = glm::vec3(x, y, z);
-			tex_coords[index] = glm::vec2(tex_s, tex_t);
+			tex_coords[index] = glm::vec2(tex_s * 8, tex_t * 8);
 		}
 	}
 	// Free up heightmap data
@@ -275,12 +275,18 @@ void Terrain::draw(GLuint shaderProgram) {
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * toWorld;
 
+	// Establish variables for shader program
 	uProjection = glGetUniformLocation(shaderProgram, "projection");
 	uModelview = glGetUniformLocation(shaderProgram, "modelview");
+	uModel = glGetUniformLocation(shaderProgram, "model");
+	uView = glGetUniformLocation(shaderProgram, "view");
 
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(uModelview, 1, GL_FALSE, &modelview[0][0]);
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
+
 
 	// Draw Terrain
 	glBindVertexArray(VAO);

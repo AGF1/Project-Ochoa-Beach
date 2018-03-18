@@ -50,9 +50,11 @@ void Window::initialize_objects()
 {
 	skybox = new Cube();
 	default_ground = new Terrain();
-	lake_ground = new Terrain(2.0f, 75.0f, -12.0f, "../assets/lake.png");
-	coast_ground = new Terrain(2.0f, 150.0f, -12.0f, "../assets/coast.jpg");
+	lake_ground = new Terrain(2.5f, 75.0f, -14.0f, "../assets/lake.png");
+	coast_ground = new Terrain(2.5f, 175.0f, -14.0f, "../assets/coast.jpg");
 	water = new Water();
+	water->init_FBOs();
+	water->unbind_FBO();
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -164,12 +166,37 @@ void Window::idle_callback()
 
 void Window::display_callback(GLFWwindow* window)
 {
+	//glEnable(GL_CLIP_DISTANCE0);
+
+	/* Render twice for reflection and refraction*/
+	water->bind_reflect_FBO();
+	render_scene();
+	water->unbind_FBO();
+
+	water->bind_refract_FBO();
+	render_scene();
+	water->unbind_FBO();
+
+	// Actual scene
+	render_scene();
+
+	// Render water
+	glUseProgram(waterShader);
+	water->draw(waterShader);
+
+	// Gets events, including input such as keyboard and mouse or window resizing
+	glfwPollEvents();
+	// Swap buffers
+	glfwSwapBuffers(window);
+}
+
+void Window::render_scene() {
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Use the shader of programID
 	glUseProgram(shaderProgram);
-	
+
 	// Render
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	skybox->draw(shaderProgram);
@@ -183,7 +210,7 @@ void Window::display_callback(GLFWwindow* window)
 	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
 
 	glUseProgram(terrainShader);
-	
+
 	// Draw different types of terrain
 	switch (ground_type) {
 	case 0:
@@ -196,14 +223,6 @@ void Window::display_callback(GLFWwindow* window)
 		coast_ground->draw(terrainShader);
 		break;
 	}
-	
-	glUseProgram(waterShader);
-	water->draw(waterShader);
-
-	// Gets events, including input such as keyboard and mouse or window resizing
-	glfwPollEvents();
-	// Swap buffers
-	glfwSwapBuffers(window);
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

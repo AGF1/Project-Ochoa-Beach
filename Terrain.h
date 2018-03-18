@@ -33,7 +33,7 @@ private:
 
 	// Buffer locations
 	GLuint VBO, VAO, NBO, TBO, EBO;
-	GLuint uProjection, uModelview, uView, uMode;
+	GLuint uProjection, uModelview, uView, uModel;
 	GLuint textureID;
 
 	// Rename buffer objects for ease of reading
