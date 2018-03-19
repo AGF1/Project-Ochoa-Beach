@@ -1,4 +1,4 @@
-#include "window.h"
+#include "Window.h"
 
 const char* window_title = "GLFW Starter Project";
 Cube * skybox;
@@ -88,6 +88,13 @@ void Window::clean_up()
 {
 	delete(skybox);
 	delete(anchor);
+	delete(beachball);
+	delete(chair);
+	delete(crab);
+	delete(hut);
+	delete(chair2);
+	delete(rock);
+	delete(rock2);
 	delete(default_ground);
 	delete(lake_ground);
 	delete(coast_ground);
