@@ -10,6 +10,7 @@ OBJObject* hut;
 OBJObject* chair2;
 OBJObject* rock;
 OBJObject* rock2;
+Patch* patch;
 GLint shaderProgram;
 GLint terrainShader;
 Terrain * ground;
@@ -51,6 +52,11 @@ void Window::initialize_objects()
 	chair2 = new OBJObject("../assets/object_files/obj.obj");
 	rock = new OBJObject("../assets/object_files/Stone_F_3.obj");
 	rock2 = new OBJObject("../assets/object_files/Stone_Forest_1.obj");
+	glm::vec3 patchPoints[16] = { glm::vec3(6.0f, 0.0f, 6.0f), glm::vec3(6.0f, 0.0f, 2.0f), glm::vec3(6.0f, 0.0f, -2.0f), glm::vec3(6.0f, 0.0f, -6.0f),
+		glm::vec3(2.0f, 0.0f, 6.0f), glm::vec3(2.0f, -2.0f, 2.0f), glm::vec3(2.0f, -2.0f, -2.0f), glm::vec3(2.0f, 0.0f, -6.0f),
+		glm::vec3(-2.0f, 0.0f, 6.0f), glm::vec3(-2.0f, -2.0f, 2.0f), glm::vec3(-2.0f, -2.0f, -2.0f), glm::vec3(-2.0f, 0.0f, -6.0f),
+		glm::vec3(-6.0f, 0.0f, 6.0f), glm::vec3(-6.0f, 0.0f, 2.0f), glm::vec3(-6.0f, 0.0f, -2.0f), glm::vec3(-6.0f, 0.0f, -6.0f) };
+	patch = new Patch(patchPoints);
 	beachball->move(20.0f, 0.0f, 0.0f);
 	chair->move(-20.0f, 0.0f, 0.0f);
 	crab->move(0.0f, 0.0f, 20.0f);
@@ -66,7 +72,15 @@ void Window::clean_up()
 {
 	delete(skybox);
 	delete(anchor);
+	delete(beachball);
+	delete(chair);
+	delete(crab);
+	delete(hut);
+	delete(chair2);
+	delete(rock);
+	delete(rock2);
 	delete(ground);
+	delete(patch);
 	glDeleteProgram(shaderProgram);
 	glDeleteProgram(terrainShader);
 }
@@ -161,6 +175,7 @@ void Window::display_callback(GLFWwindow* window)
 	chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f), toon);
 	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
 	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
+	patch->draw(shaderProgram, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 76.8f), toon);
 
 	glDisable(GL_CULL_FACE);
 	glUseProgram(terrainShader);

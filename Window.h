@@ -18,6 +18,7 @@
 #include "shader.h"
 #include "Curve.h"
 #include "Terrain.h"
+#include "Patch.h"
 
 class Window
 {
