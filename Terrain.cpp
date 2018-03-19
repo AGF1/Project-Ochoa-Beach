@@ -3,7 +3,7 @@
 
 #include "soil.h"	// Load in heightmap data using these features
 
-#define TEXTURE_PATH "../assets/textures/sand.ppm"
+#define TEXTURE_PATH "../assets/textures/sand2.ppm"
 #define HEIGHTMAP_PATH "../assets/SanDiegoTerrain.jpg"
 
 // Default constructor with set scales and heightmap
@@ -195,7 +195,6 @@ void Terrain::loadHeightmap() {
 	// Get Terrain data and dimensions
 	unsigned char * hmData = SOIL_load_image(heightmap_path, &map_width, &map_height, &channels, SOIL_LOAD_L);
 	if (map_width < 0) { std::cout << "Heightmap not loading correctly!" << std::endl; return; }
-	//std::cout << map_width << " " << map_height << std::endl;
 
 	// Resize buffers
 	int num_vertices = map_width * map_height;
@@ -230,7 +229,7 @@ void Terrain::loadHeightmap() {
 
 			normals[index] = glm::vec3(0);	// Fill out later
 			vertices[index] = glm::vec3(x, y, z);
-			tex_coords[index] = glm::vec2(tex_s * 8, tex_t * 8);
+			tex_coords[index] = glm::vec2(tex_s, tex_t);
 		}
 	}
 	// Free up heightmap data
@@ -245,7 +244,7 @@ void Terrain::loadHeightmap() {
 }
 
 void Terrain::loadTexture() {
-	int twidth, theight;
+	int twidth, theight, channels;
 	unsigned char* tdata;  // texture pixel data
 
 	// Create ID for texture
@@ -270,7 +269,6 @@ void Terrain::loadTexture() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
 void Terrain::draw(GLuint shaderProgram) {
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * toWorld;
@@ -287,6 +285,8 @@ void Terrain::draw(GLuint shaderProgram) {
 	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
 	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
 
+	// Send clipping plane to relevant shaders
+	glUniform4f(glGetUniformLocation(shaderProgram, "plane"), 0.0, Window::plane_vec_dir, 0.0, Window::water_level);
 
 	// Draw Terrain
 	glBindVertexArray(VAO);
@@ -306,9 +306,3 @@ void Terrain::draw(GLuint shaderProgram) {
 
 }
 
-/*-----------------------------------------------------Inline Helper Functions--------------------------------------------------*/
-// Returns ratio of val between min and max
-inline float GetPercentage(float val, const float min, const float max) {
-	val = glm::clamp(val, min, max);
-	return (val - min) / (max - min);
-}

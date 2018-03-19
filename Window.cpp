@@ -46,6 +46,10 @@ int Window::height;
 glm::mat4 Window::P;
 glm::mat4 Window::V;
 
+// To help define the clipping plane
+float Window::water_level;
+float Window::plane_vec_dir;
+
 void Window::initialize_objects()
 {
 	skybox = new Cube();
@@ -54,7 +58,7 @@ void Window::initialize_objects()
 	coast_ground = new Terrain(2.5f, 175.0f, -14.0f, "../assets/coast.jpg");
 	water = new Water();
 	water->init_FBOs();
-	water->unbind_FBO();
+	water_level = water->getWaterLevel();
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -152,6 +156,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	Window::height = height;
 	// Set the viewport size. This is the only matrix that OpenGL maintains for us in modern OpenGL!
 	glViewport(0, 0, width, height);
+	//water->init_FBOs();
 
 	if (height > 0)
 	{
@@ -166,16 +171,30 @@ void Window::idle_callback()
 
 void Window::display_callback(GLFWwindow* window)
 {
-	//glEnable(GL_CLIP_DISTANCE0);
+	glEnable(GL_CLIP_DISTANCE0);	// Use clipping plane only for reflection/refraction texture creation
 
 	/* Render twice for reflection and refraction*/
+	// Reflection texture
 	water->bind_reflect_FBO();
+	plane_vec_dir = 1.0;
+	water_level *= -1.0;
+	// position the camera to simulate the reflection texture
+	float distance = 2 * (cam_pos.y - water->getWaterLevel());
+	float look_at_distance = 2 * (cam_look_at.y - water->getWaterLevel());
+	cam_pos.y -= distance;
+	cam_look_at -= look_at_distance;
+	render_scene();
+	cam_pos.y += distance;	// Move back to original position
+	cam_look_at += look_at_distance;
+
+	// Refraction texture
+	water->bind_refract_FBO();
+	plane_vec_dir = -1.0;
+	water_level *= -1.0;
 	render_scene();
 	water->unbind_FBO();
 
-	water->bind_refract_FBO();
-	render_scene();
-	water->unbind_FBO();
+	glDisable(GL_CLIP_DISTANCE0);
 
 	// Actual scene
 	render_scene();

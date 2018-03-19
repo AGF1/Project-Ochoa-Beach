@@ -16,6 +16,7 @@ uniform mat4 view;
 uniform int mode;
 uniform mat4 modelview;
 uniform vec3 camPos;
+uniform vec4 plane;
 
 // Outputs of the vertex shader are the inputs of the same name of the fragment shader.
 // The default output, gl_Position, should be assigned something. You can define as many
@@ -42,4 +43,7 @@ void main()
     FragPos = vec3(model * vec4(position.x, position.y, position.z, 1.0));
     Normal = mat3(transpose(inverse(model))) * normal;
 	TexCoords = position;
+
+	vec4 worldPos = model * vec4(position, 1.0);
+	gl_ClipDistance[0] = dot(worldPos, plane);
 }

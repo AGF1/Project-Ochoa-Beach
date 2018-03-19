@@ -25,6 +25,8 @@ class Window
 public:
 	static int width;
 	static int height;
+	static float water_level;
+	static float plane_vec_dir;
 	static glm::mat4 P; // P for projection
 	static glm::mat4 V; // V for view
 	static glm::vec3 cam_pos;
