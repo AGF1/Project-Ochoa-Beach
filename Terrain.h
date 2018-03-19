@@ -21,25 +21,27 @@
 class Terrain {
 private:
 	glm::mat4 toWorld;
+	const char * heightmap_path;
 
 	// Scale size of terrain
 	float xz_scale;
 	float height_scale;
+	float ground_translate;	// Move the ground down
 
 	// Heightmap dimensions
 	glm::vec2 hMapDimensions;
 
 	// Buffer locations
 	GLuint VBO, VAO, NBO, TBO, EBO;
-	GLuint uProjection, uModelview, uView, uMode;
+	GLuint uProjection, uModelview, uView, uModel;
 	GLuint textureID;
 
 	// Rename buffer objects for ease of reading
-	typedef std::vector<glm::vec3>  PosBuff;
-	//typedef std::vector<glm::vec4>  ColorBuff;
-	typedef std::vector<glm::vec3>  NormBuff;
-	typedef std::vector<glm::vec2>  TexCoordBuff;
-	typedef std::vector<GLuint>     IndexBuff;
+	typedef std::vector<glm::vec3> PosBuff;
+	//typedef std::vector<glm::vec4> ColorBuff;
+	typedef std::vector<glm::vec3> NormBuff;
+	typedef std::vector<glm::vec2> TexCoordBuff;
+	typedef std::vector<GLuint> IndexBuff;
 
 	// Buffers
 	PosBuff vertices;
@@ -50,7 +52,7 @@ private:
 
 public:
 	Terrain();
-	Terrain(float, float);
+	Terrain(float, float, float, const char *);
 	~Terrain();
 
 	void init_buffers();
@@ -60,18 +62,6 @@ public:
 	void loadHeightmap();
 	void loadTexture();
 	void draw(GLuint);
-};
-
-// Hardcoded floor for checking if texture code works
-const GLfloat vertices_test[4][3] = {
-	// "Front" vertices
-	{ 500.0,  -5.0,  500.0 },{ -500.0,  -5.0, 500.0 },
-	// "Back" vertices
-	{ 500.0,  -5.0, -500.0 },{ -500.0,  -5.0, -500.0 }
-};
-
-const GLuint indices_test[6] = {
-	 1, 0, 2, 2, 3, 1
 };
 
 #endif

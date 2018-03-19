@@ -224,6 +224,10 @@ void OBJObject::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightCo
 	glUniform1fv(uShine, 1, &materialParams.w);
 	glUniform1i(uMode, 0);
 	glUniform1i(uToon, toon);
+
+	// Send clipping plane to relevant shaders
+	glUniform4f(glGetUniformLocation(shaderProgram, "plane"), 0.0, Window::plane_vec_dir, 0.0, Window::water_level);
+
 	// Now draw the object. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);
 	// Tell OpenGL to draw with triangles, using the number of indices, the type of the indices, and the offset to start from

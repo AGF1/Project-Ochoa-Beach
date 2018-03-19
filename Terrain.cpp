@@ -3,24 +3,28 @@
 
 #include "soil.h"	// Load in heightmap data using these features
 
-#define TEXTURE_PATH "../assets/textures/sand.ppm"
+#define TEXTURE_PATH "../assets/textures/sand2.ppm"
 #define HEIGHTMAP_PATH "../assets/SanDiegoTerrain.jpg"
 
-// Default constructor where scale is 0.5f
+// Default constructor with set scales and heightmap
 Terrain::Terrain() {
 	toWorld = glm::mat4(1.0f);
 	xz_scale = 0.5f;
 	height_scale = 10.0f;
-
+	ground_translate = -9.0f;
+	heightmap_path = "../assets/SanDiegoTerrain.jpg";
+	
 	loadHeightmap();
 	loadTexture();
 }
 
-// More granular control with this constructor over scale
-Terrain::Terrain(float xz_scale, float height_scale) {
+// Constructor that controls scaling, ground level, and heightmap path
+Terrain::Terrain(float xz_scale, float height_scale, float ground_translate, const char * hmPath) {
 	toWorld = glm::mat4(1.0f);
 	this->xz_scale = xz_scale;
 	this->height_scale = height_scale;
+	this->ground_translate = ground_translate;
+	heightmap_path = hmPath;
 
 	loadHeightmap();
 	loadTexture();
@@ -189,7 +193,7 @@ void Terrain::loadHeightmap() {
 	int map_width, map_height, channels;	
 	
 	// Get Terrain data and dimensions
-	unsigned char * hmData = SOIL_load_image(HEIGHTMAP_PATH, &map_width, &map_height, &channels, SOIL_LOAD_L);
+	unsigned char * hmData = SOIL_load_image(heightmap_path, &map_width, &map_height, &channels, SOIL_LOAD_L);
 	if (map_width < 0) { std::cout << "Heightmap not loading correctly!" << std::endl; return; }
 
 	// Resize buffers
@@ -220,7 +224,7 @@ void Terrain::loadHeightmap() {
 
 			// Vertex coordinates
 			float x = (tex_s * terrWidth) - centerTerrWidth;
-			float y = (heightValue * height_scale) - 15.0f;
+			float y = (heightValue * height_scale) + ground_translate;
 			float z = (tex_t * terrHeight) - centerTerrHeight;
 
 			normals[index] = glm::vec3(0);	// Fill out later
@@ -240,7 +244,7 @@ void Terrain::loadHeightmap() {
 }
 
 void Terrain::loadTexture() {
-	int twidth, theight;
+	int twidth, theight, channels;
 	unsigned char* tdata;  // texture pixel data
 
 	// Create ID for texture
@@ -265,17 +269,24 @@ void Terrain::loadTexture() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
 void Terrain::draw(GLuint shaderProgram) {
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * toWorld;
 
+	// Establish variables for shader program
 	uProjection = glGetUniformLocation(shaderProgram, "projection");
 	uModelview = glGetUniformLocation(shaderProgram, "modelview");
+	uModel = glGetUniformLocation(shaderProgram, "model");
+	uView = glGetUniformLocation(shaderProgram, "view");
 
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(uModelview, 1, GL_FALSE, &modelview[0][0]);
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
+
+	// Send clipping plane to relevant shaders
+	glUniform4f(glGetUniformLocation(shaderProgram, "plane"), 0.0, Window::plane_vec_dir, 0.0, Window::water_level);
 
 	// Draw Terrain
 	glBindVertexArray(VAO);
@@ -295,9 +306,3 @@ void Terrain::draw(GLuint shaderProgram) {
 
 }
 
-/*-----------------------------------------------------Inline Helper Functions--------------------------------------------------*/
-// Returns ratio of val between min and max
-inline float GetPercentage(float val, const float min, const float max) {
-	val = glm::clamp(val, min, max);
-	return (val - min) / (max - min);
-}

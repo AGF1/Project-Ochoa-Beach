@@ -18,13 +18,15 @@
 #include "shader.h"
 #include "Curve.h"
 #include "Terrain.h"
-#include "Patch.h"
+#include "Water.h"
 
 class Window
 {
 public:
 	static int width;
 	static int height;
+	static float water_level;
+	static float plane_vec_dir;
 	static glm::mat4 P; // P for projection
 	static glm::mat4 V; // V for view
 	static glm::vec3 cam_pos;
@@ -41,6 +43,9 @@ public:
 	static void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static glm::vec3 trackBallMapping(glm::vec3 point);
+
+private:
+	static void render_scene(); // Object rendering minus water goes here
 };
 
 #endif
