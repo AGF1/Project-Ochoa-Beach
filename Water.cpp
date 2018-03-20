@@ -32,7 +32,6 @@ Water::~Water() {
 	glDeleteBuffers(1, &NBO);
 	glDeleteBuffers(1, &TBO);
 	glDeleteBuffers(1, &EBO);
-	glDeleteTextures(1, &dudvTextureID);
 
 	// Clean FBOs and their attachments
 	glDeleteFramebuffers(1, &reflect_FBO);
@@ -46,6 +45,12 @@ Water::~Water() {
 	glDeleteTextures(1, &dudvTextureID);
 	glDeleteTextures(1, &normalTextureID);
 	glDeleteTextures(1, &skyboxTextureID);
+
+	// Empty buffers
+	vertices.clear();
+	normals.clear();
+	tex_coords.clear();
+	indices.clear();
 }
 
 float Water::getWaterLevel() { return water_level; }
@@ -459,29 +464,21 @@ unsigned char* Water::loadPPM(const char* filename, int& width, int& height)
 	return rawData;
 }
 
-void Water::clean_FBOs() {
-	// Resize reflection FBO
+void Water::resize_FBOs() {
+	// Resize Reflection FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, reflect_FBO);
-
-	// Create and bind reflection texture
 	glBindTexture(GL_TEXTURE_2D, reflect_texture);
-	// Add empty texture for now
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Window::width, Window::height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	// Add filter
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// Create depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, reflect_DBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Window::width, Window::height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflect_DBO);
-	// Attach reflection texture as color attachment
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, reflect_texture, 0);
-	// Create framebuffer
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-	// Detach framebuffer
+	// Resize Refraction FBO (did not resize depth texture object)
+	glBindFramebuffer(GL_FRAMEBUFFER, refract_FBO);
+	glBindTexture(GL_TEXTURE_2D, refract_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Window::width, Window::height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glBindTexture(GL_TEXTURE_2D, refract_DTO);
+	// Add empty texture for now
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, Window::width, Window::height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glViewport(0, 0, Window::width, Window::height);
-
 }

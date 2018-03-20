@@ -154,7 +154,6 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 #endif
 	Window::width = width;
 	Window::height = height;
-	// Set the viewport size. This is the only matrix that OpenGL maintains for us in modern OpenGL!
 	glViewport(0, 0, width, height);
 
 	if (height > 0)
@@ -174,6 +173,7 @@ void Window::display_callback(GLFWwindow* window)
 
 	/* Render twice for reflection and refraction*/
 	// Reflection texture
+	water->resize_FBOs();
 	water->bind_reflect_FBO();
 	plane_vec_dir = 1.0;
 	water_level *= -1.0;

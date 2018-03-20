@@ -25,6 +25,7 @@ const float shininess = 100.0;
 const float reflectiveness = 0.8;
 
 void main() { 
+	vec3 viewVec = normalize(eyeVec);
 	vec2 norm_dev_coords = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
 	vec2 refractTexCoords = vec2(norm_dev_coords.x, norm_dev_coords.y);
 	vec2 reflectTexCoords = vec2(norm_dev_coords.x, -norm_dev_coords.y);
@@ -43,7 +44,6 @@ void main() {
 	vec4 reflectColor = texture(reflect_texture, reflectTexCoords);
 	vec4 refractColor = texture(refract_texture, refractTexCoords);
 
-	vec3 viewVec = normalize(eyeVec);
 	float refractFactor = dot(viewVec, vec3(0.0, 1.0, 0.0));	// Fresnel effect
 	refractFactor = pow(refractFactor, 0.4);					// 0-1 = more refractive, 1+ = more reflective
 
@@ -59,8 +59,8 @@ void main() {
 
 	// Calculate skybox reflection
 	vec3 skyboxReflectTex = reflect(-viewVec, vec3(0.0, 1.0, 0.0));
-	skyboxReflectTex.x += reflectTexCoords.x;
-	skyboxReflectTex.y += reflectTexCoords.y;	// Flip to negative due to reflection nature
+	skyboxReflectTex.x += total_distort.x;
+	skyboxReflectTex.y += total_distort.y;	// Flip to negative due to reflection nature
 	vec4 skyReflectColor = vec4(texture(skybox, skyboxReflectTex).rgb, 1.0);
 	
 	// Mix the resulting textures together
