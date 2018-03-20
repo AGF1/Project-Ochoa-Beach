@@ -85,7 +85,7 @@ public:
 	void bind_reflect_FBO();
 	void bind_refract_FBO();
 	void unbind_FBO();	// Unbind reflection/refraction FBO
-
+	void clean_FBOs();
 };
 
 #endif
