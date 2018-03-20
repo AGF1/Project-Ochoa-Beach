@@ -1,4 +1,4 @@
-/* By Brandon S. Bell and Ronald Allan V. Baldonado */
+/* By Brendan S. Bell and Ronald Allan V. Baldonado */
 
 IN PROGRESS: Beach themed location with the following features
 	Toon Shading (1)

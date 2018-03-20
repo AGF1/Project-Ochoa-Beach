@@ -1,4 +1,4 @@
-#include "window.h"
+#include "Window.h"
 
 const char* window_title = "GLFW Starter Project";
 Cube * skybox;
@@ -36,8 +36,8 @@ unsigned int ground_type = 0;	// Default ground to render based off of SD height
 #define COAST_TERRAIN 2
 
 // Default camera parameters
-glm::vec3 Window::cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
-glm::vec3 Window::cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
+glm::vec3 Window::cam_pos(0.0f, 0.0f, 0.0f);		// e  | Position of camera
+glm::vec3 Window::cam_look_at(20.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
 glm::vec3 Window::cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 
 int Window::width;
@@ -73,14 +73,28 @@ void Window::initialize_objects()
 	chair2 = new OBJObject("../assets/object_files/obj.obj");
 	rock = new OBJObject("../assets/object_files/Stone_F_3.obj");
 	rock2 = new OBJObject("../assets/object_files/Stone_Forest_1.obj");
-	beachball->move(20.0f, 0.0f, 0.0f);
-	chair->move(-20.0f, 0.0f, 0.0f);
-	crab->move(0.0f, 0.0f, 20.0f);
-	hut->move(0.0f, 0.0f, -20.0f);
-	chair2->move(20.0f, 0.0f, 20.0f);
-	rock->move(20.0f, 0.0f, -20.0f);
-	rock2->move(-20.0f, 0.0f, 20.0f);
-	anchor->move(-20.0f, 0.0f, -20.0f);
+	// -/+x: Left/Right    -/+y: Down/Up    -/+z: Forward/Back
+	anchor->rotate(0.0f, 1.0f, 0.0f, 0.0f);
+	anchor->resize(2.0f);
+	anchor->move(50.0f, 0.0f, -75.0f);
+	beachball->resize(0.5f);
+	beachball->move(130.0f, -4.0f, 0.0f);
+	chair->rotate(0.0f, 1.0f, 0.0f, -glm::pi<float>() / 8.0f);
+	chair->resize(2.0f);
+	chair->move(180.0f, -1.8f, -5.0f);
+	crab->rotate(0.0f, 1.0f, 0.0f, -glm::pi<float>() / 2.5f);
+	crab->resize(3.0f);
+	crab->move(200.0f, -1.0f, -10.0f);
+	hut->rotate(0.0f, 1.0f, 0.0f, -glm::pi<float>() / 2.0f);
+	hut->resize(15.0f);
+	hut->move(420.0f, 9.2f, -70.0f);
+	chair2->rotate(0.0f, 1.0f, 0.0f, glm::pi<float>() * 1.2f);
+	chair2->resize(1.5f);
+	chair2->move(135.0f, -1.1f, -155.0f);
+	rock->resize(4.0f);
+	rock->move(150.0f, 0.0f, 50.0f);
+	rock2->resize(2.0f);
+	rock2->move(150.0f, 0.0f, -75.0f);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -88,6 +102,13 @@ void Window::clean_up()
 {
 	delete(skybox);
 	delete(anchor);
+	delete(beachball);
+	delete(chair);
+	delete(crab);
+	delete(hut);
+	delete(chair2);
+	delete(rock);
+	delete(rock2);
 	delete(default_ground);
 	delete(lake_ground);
 	delete(coast_ground);
@@ -220,8 +241,8 @@ void Window::render_scene() {
 	skybox->draw(shaderProgram);
 	anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 32.0f), toon);
 	beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 32.0f), toon);
-	chair->draw(shaderProgram, glm::vec3(0.6f, 0.5f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f), toon);
-	crab->draw(shaderProgram, glm::vec3(0.6f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f), toon);
+	chair->draw(shaderProgram, glm::vec3(1.0f, 1.0f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f), toon);
+	crab->draw(shaderProgram, glm::vec3(0.7f, 0.4f, 0.3f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f), toon);
 	hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f), toon);
 	chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f), toon);
 	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);

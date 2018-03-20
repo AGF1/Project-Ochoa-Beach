@@ -45,6 +45,12 @@
     <ClInclude Include="..\Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Patch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -58,6 +64,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="..\terrainShader.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\Water.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\Water.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -90,6 +102,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Patch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Water.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
