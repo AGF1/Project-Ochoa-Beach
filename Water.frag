@@ -22,7 +22,7 @@ out vec4 color;
 // Constants
 const float wave_strength = 0.06;
 const float shininess = 100.0;
-const float reflectiveness = 0.6;
+const float reflectiveness = 0.8;
 
 void main() { 
 	vec2 norm_dev_coords = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
@@ -59,13 +59,14 @@ void main() {
 
 	// Calculate skybox reflection
 	vec3 skyboxReflectTex = reflect(-viewVec, vec3(0.0, 1.0, 0.0));
-	skyboxReflectTex.x += clamp(reflectTexCoords.x, 0.001, 0.999);
-	skyboxReflectTex.y += clamp(reflectTexCoords.y, -0.999, -0.001);	// Flip to negative due to reflection nature
+	skyboxReflectTex.x += reflectTexCoords.x;
+	skyboxReflectTex.y += reflectTexCoords.y;	// Flip to negative due to reflection nature
 	vec4 skyReflectColor = vec4(texture(skybox, skyboxReflectTex).rgb, 1.0);
 	
 	// Mix the resulting textures together
 	color = mix(reflectColor, refractColor, refractFactor);
 	skyReflectColor = mix(skyReflectColor, refractColor, refractFactor);
 	color = mix(reflectColor, skyReflectColor, 0.72);
-	color = mix(color, vec4(0.0, 0.25, 0.4, 1.0), 0.2) + vec4(specular, 0.0);	// Mix with blue tint and add specular lighting
+	color = mix(color, vec4(0.0, 0.35, 0.75, 1.0), 0.2) + vec4(specular, 0.0);	// Mix with blue tint and add specular lighting
+	//color = skyReflectColor;
 }

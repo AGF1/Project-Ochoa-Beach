@@ -18,7 +18,7 @@ out vec4 clipSpace;
 out vec3 eyeVec;
 
 // Constants
-const float tile = 9.0;
+const float tile = 6.0;
 
 void main()
 {

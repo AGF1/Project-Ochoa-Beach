@@ -227,7 +227,7 @@ void Water::loadSkyboxTexture() {
 	int twidth, theight;   // texture width/height [pixels]
 	unsigned char* tdata;  // texture pixel data
 
-						   // Create ID for texture
+	// Create ID for texture
 	glGenTextures(1, &skyboxTextureID);
 
 	// Set this texture to be the one we are working with
@@ -275,6 +275,7 @@ void Water::draw(GLuint shaderProgram) {
 	// Add dudv_map to fragment shader
 	glUniform1i(glGetUniformLocation(shaderProgram, "dudv_map"), 2);
 	move_factor += WAVE_SPEED;	// Calculate wave speed and keep it from going above 1
+	move_factor = fmod(move_factor, FLT_MAX - 1);
 	//move_factor = glm::cos(move_factor);
 	//move_factor = fmod(move_factor, 0.5f);
 
@@ -456,4 +457,31 @@ unsigned char* Water::loadPPM(const char* filename, int& width, int& height)
 	}
 
 	return rawData;
+}
+
+void Water::clean_FBOs() {
+	// Resize reflection FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, reflect_FBO);
+
+	// Create and bind reflection texture
+	glBindTexture(GL_TEXTURE_2D, reflect_texture);
+	// Add empty texture for now
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Window::width, Window::height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	// Add filter
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// Create depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, reflect_DBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Window::width, Window::height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflect_DBO);
+	// Attach reflection texture as color attachment
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, reflect_texture, 0);
+	// Create framebuffer
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// Detach framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glViewport(0, 0, Window::width, Window::height);
+
 }

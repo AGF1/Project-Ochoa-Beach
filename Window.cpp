@@ -163,7 +163,6 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	Window::height = height;
 	// Set the viewport size. This is the only matrix that OpenGL maintains for us in modern OpenGL!
 	glViewport(0, 0, width, height);
-	//water->init_FBOs();
 
 	if (height > 0)
 	{
@@ -189,10 +188,10 @@ void Window::display_callback(GLFWwindow* window)
 	float distance = 2 * (cam_pos.y - water->getWaterLevel());
 	float look_at_distance = 2 * (cam_look_at.y - water->getWaterLevel());
 	cam_pos.y -= distance;
-	cam_look_at -= look_at_distance;
+	cam_look_at.y -= look_at_distance;
 	render_scene();
 	cam_pos.y += distance;	// Move back to original position
-	cam_look_at += look_at_distance;
+	cam_look_at.y += look_at_distance;
 
 	// Refraction texture
 	water->bind_refract_FBO();

@@ -207,8 +207,8 @@ void Terrain::loadHeightmap() {
 	hMapDimensions = glm::vec2(map_width, map_height);
 
 	// Get scaled terrain dimensions in world dimensions
-	float terrWidth = 1000;
-	float terrHeight = 1000;
+	float terrWidth = 1000.0;
+	float terrHeight = 1000.0;
 	float centerTerrWidth = terrWidth * 0.5f;
 	float centerTerrHeight = terrHeight * 0.5f;
 
