@@ -1,7 +1,7 @@
 #include "Patch.h"
 #include "Window.h"
 
-Patch::Patch(glm::vec3 pts[16])
+Patch::Patch(glm::vec3 position, glm::vec3 pts[16])
 {
 	std::vector<glm::vec3> points = genPatchPoints(pts, 7);
 	for (int i = 0; i < 6; i++)
@@ -23,12 +23,43 @@ Patch::Patch(glm::vec3 pts[16])
 		}
 	}
 
+	//Simple data only stores the corners
+	simpleVerts.push_back(points[(0 * 14) + (2 * 0)].x);
+	simpleVerts.push_back(points[(0 * 14) + (2 * 0)].y);
+	simpleVerts.push_back(points[(0 * 14) + (2 * 0)].z);
+	simpleNorms.push_back(0.0f);
+	simpleNorms.push_back(1.0f);
+	simpleNorms.push_back(0.0f);
+
+	simpleVerts.push_back(points[(0 * 14) + (2 * 6)].x);
+	simpleVerts.push_back(points[(0 * 14) + (2 * 6)].y);
+	simpleVerts.push_back(points[(0 * 14) + (2 * 6)].z);
+	simpleNorms.push_back(0.0f);
+	simpleNorms.push_back(1.0f);
+	simpleNorms.push_back(0.0f);
+
+	simpleVerts.push_back(points[(6 * 14) + (2 * 0)].x);
+	simpleVerts.push_back(points[(6 * 14) + (2 * 0)].y);
+	simpleVerts.push_back(points[(6 * 14) + (2 * 0)].z);
+	simpleNorms.push_back(0.0f);
+	simpleNorms.push_back(1.0f);
+	simpleNorms.push_back(0.0f);
+
+	simpleVerts.push_back(points[(6 * 14) + (2 * 6)].x);
+	simpleVerts.push_back(points[(6 * 14) + (2 * 6)].y);
+	simpleVerts.push_back(points[(6 * 14) + (2 * 6)].z);
+	simpleNorms.push_back(0.0f);
+	simpleNorms.push_back(1.0f);
+	simpleNorms.push_back(0.0f);
+
+	simpleIndices = { 0, 1, 2, 1, 3, 2 };
+
 	for (int i = 0; i < 98; i++)
 	{
 		indices.push_back(i);
 	}
 
-	toWorld = glm::mat4(1.0f);
+	toWorld = glm::translate(glm::mat4(1.0f), position);
 
 	// Create array object and buffers. Remember to delete your buffers when the object is destroyed!
 	glGenVertexArrays(1, &VAO);
@@ -85,62 +116,177 @@ Patch::~Patch()
 	glDeleteBuffers(1, &EBO);
 }
 
-void Patch::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon)
+void Patch::reinitialize(bool simple)
+{
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(2, &VBO[0]);
+	glDeleteBuffers(1, &EBO);
+	if (simple) {
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(2, &VBO[0]);
+		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+		glBufferData(GL_ARRAY_BUFFER, simpleVerts.size() * sizeof(GLfloat), &simpleVerts[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, simpleIndices.size() * sizeof(int), &(simpleIndices[0]), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+		glBufferData(GL_ARRAY_BUFFER, simpleNorms.size() * sizeof(GLfloat), &(simpleNorms[0]), GL_STATIC_DRAW);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, simpleIndices.size() * sizeof(int), &(simpleIndices[0]), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	else
+	{
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(2, &VBO[0]);
+		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &(indices[0]), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(GLfloat), &(normals[0]), GL_STATIC_DRAW);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &(indices[0]), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+}
+
+void Patch::draw(GLuint shaderProgram, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon, bool simple)
 { 
-	// Calculate the combination of the model and view (camera inverse) matrices
-	glm::mat4 modelview = Window::V * toWorld;
-	// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
-	// Consequently, we need to forward the projection, view, and model matrices to the shader programs
-	// Get the location of the uniform variables "projection" and "modelview"
-	uProjection = glGetUniformLocation(shaderProgram, "projection");
-	uModel = glGetUniformLocation(shaderProgram, "model");
-	uView = glGetUniformLocation(shaderProgram, "view");
-	uModelView = glGetUniformLocation(shaderProgram, "modelview");
+	if (simple) {
+		// Calculate the combination of the model and view (camera inverse) matrices
+		glm::mat4 modelview = Window::V * toWorld;
+		// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
+		// Consequently, we need to forward the projection, view, and model matrices to the shader programs
+		// Get the location of the uniform variables "projection" and "modelview"
+		uProjection = glGetUniformLocation(shaderProgram, "projection");
+		uModel = glGetUniformLocation(shaderProgram, "model");
+		uView = glGetUniformLocation(shaderProgram, "view");
+		uModelView = glGetUniformLocation(shaderProgram, "modelview");
 
-	uObjColor = glGetUniformLocation(shaderProgram, "objectColor");
-	uLightColor = glGetUniformLocation(shaderProgram, "lightColor");
-	uLightDir = glGetUniformLocation(shaderProgram, "lightDir");
-	uCamPos = glGetUniformLocation(shaderProgram, "camPos");
+		uObjColor = glGetUniformLocation(shaderProgram, "objectColor");
+		uLightColor = glGetUniformLocation(shaderProgram, "lightColor");
+		uLightDir = glGetUniformLocation(shaderProgram, "lightDir");
+		uCamPos = glGetUniformLocation(shaderProgram, "camPos");
 
-	uAmb = glGetUniformLocation(shaderProgram, "ambientModifier");
-	uDif = glGetUniformLocation(shaderProgram, "diffuseModifier");
-	uSpec = glGetUniformLocation(shaderProgram, "specularModifier");
-	uShine = glGetUniformLocation(shaderProgram, "shininess");
+		uAmb = glGetUniformLocation(shaderProgram, "ambientModifier");
+		uDif = glGetUniformLocation(shaderProgram, "diffuseModifier");
+		uSpec = glGetUniformLocation(shaderProgram, "specularModifier");
+		uShine = glGetUniformLocation(shaderProgram, "shininess");
 
-	uMode = glGetUniformLocation(shaderProgram, "mode");
+		uMode = glGetUniformLocation(shaderProgram, "mode");
 
-	uToon = glGetUniformLocation(shaderProgram, "toon");
+		uToon = glGetUniformLocation(shaderProgram, "toon");
 
-	// Now send these values to the shader program
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
-	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
-	glUniformMatrix4fv(uModelView, 1, GL_FALSE, &modelview[0][0]);
-	glUniform3fv(uObjColor, 1, &(objColor.x));
-	glUniform3fv(uLightColor, 1, &(lightColor.x));
-	glUniform3fv(uLightDir, 1, &(lightDir.x));
-	glUniform3fv(uCamPos, 1, &(camPos.x));
-	glUniform1fv(uAmb, 1, &materialParams.x);
-	glUniform1fv(uDif, 1, &materialParams.y);
-	glUniform1fv(uSpec, 1, &materialParams.z);
-	glUniform1fv(uShine, 1, &materialParams.w);
-	glUniform1i(uMode, 0);
-	glUniform1i(uToon, toon);
+		// Now send these values to the shader program
+		glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
+		glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
+		glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
+		glUniformMatrix4fv(uModelView, 1, GL_FALSE, &modelview[0][0]);
+		glUniform3fv(uObjColor, 1, &(objColor.x));
+		glUniform3fv(uLightColor, 1, &(lightColor.x));
+		glUniform3fv(uLightDir, 1, &(lightDir.x));
+		glUniform3fv(uCamPos, 1, &(camPos.x));
+		glUniform1fv(uAmb, 1, &materialParams.x);
+		glUniform1fv(uDif, 1, &materialParams.y);
+		glUniform1fv(uSpec, 1, &materialParams.z);
+		glUniform1fv(uShine, 1, &materialParams.w);
+		glUniform1i(uMode, 0);
+		glUniform1i(uToon, toon);
 
-	glDisable(GL_CULL_FACE);
+		glDisable(GL_CULL_FACE);
 
-	// Now draw the cube. We simply need to bind the VAO associated with it.
-	glBindVertexArray(VAO);
-	// Tell OpenGL to draw with lines, using 49 indices, the type of the indices, and the offset to start from
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 14, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 28, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 42, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 56, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 70, 14);
-	glDrawArrays(GL_TRIANGLE_STRIP, 84, 14);
-	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
-	glBindVertexArray(0);
+		// Now draw the cube. We simply need to bind the VAO associated with it.
+		glBindVertexArray(VAO);
+		// Tell OpenGL to draw with lines, using indices, the type of the indices, and the offset to start from
+		glDrawElements(GL_TRIANGLES, simpleIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+		// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
+		glBindVertexArray(0);
+	}
+	else
+	{
+		// Calculate the combination of the model and view (camera inverse) matrices
+		glm::mat4 modelview = Window::V * toWorld;
+		// We need to calcullate this because modern OpenGL does not keep track of any matrix other than the viewport (D)
+		// Consequently, we need to forward the projection, view, and model matrices to the shader programs
+		// Get the location of the uniform variables "projection" and "modelview"
+		uProjection = glGetUniformLocation(shaderProgram, "projection");
+		uModel = glGetUniformLocation(shaderProgram, "model");
+		uView = glGetUniformLocation(shaderProgram, "view");
+		uModelView = glGetUniformLocation(shaderProgram, "modelview");
+
+		uObjColor = glGetUniformLocation(shaderProgram, "objectColor");
+		uLightColor = glGetUniformLocation(shaderProgram, "lightColor");
+		uLightDir = glGetUniformLocation(shaderProgram, "lightDir");
+		uCamPos = glGetUniformLocation(shaderProgram, "camPos");
+
+		uAmb = glGetUniformLocation(shaderProgram, "ambientModifier");
+		uDif = glGetUniformLocation(shaderProgram, "diffuseModifier");
+		uSpec = glGetUniformLocation(shaderProgram, "specularModifier");
+		uShine = glGetUniformLocation(shaderProgram, "shininess");
+
+		uMode = glGetUniformLocation(shaderProgram, "mode");
+
+		uToon = glGetUniformLocation(shaderProgram, "toon");
+
+		// Now send these values to the shader program
+		glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
+		glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
+		glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
+		glUniformMatrix4fv(uModelView, 1, GL_FALSE, &modelview[0][0]);
+		glUniform3fv(uObjColor, 1, &(objColor.x));
+		glUniform3fv(uLightColor, 1, &(lightColor.x));
+		glUniform3fv(uLightDir, 1, &(lightDir.x));
+		glUniform3fv(uCamPos, 1, &(camPos.x));
+		glUniform1fv(uAmb, 1, &materialParams.x);
+		glUniform1fv(uDif, 1, &materialParams.y);
+		glUniform1fv(uSpec, 1, &materialParams.z);
+		glUniform1fv(uShine, 1, &materialParams.w);
+		glUniform1i(uMode, 0);
+		glUniform1i(uToon, toon);
+
+		glDisable(GL_CULL_FACE);
+
+		// Now draw the cube. We simply need to bind the VAO associated with it.
+		glBindVertexArray(VAO);
+		// Tell OpenGL to draw with lines, using indices, the type of the indices, and the offset to start from
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 14, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 28, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 42, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 56, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 70, 14);
+		glDrawArrays(GL_TRIANGLE_STRIP, 84, 14);
+		// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
+		glBindVertexArray(0);
+	}
 }
 
 glm::vec3 Patch::genSingleCurvePoint(float t, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3)
