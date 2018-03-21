@@ -3,7 +3,7 @@
 
 #define DUDV_PATH "../assets/textures/waterDUDV.png"
 #define NORMAL_PATH "../assets/textures/normal.png"
-#define WAVE_SPEED 0.002f
+#define WAVE_SPEED 0.001f
 
 #define FORWARD true
 #define BACKWARD false
@@ -291,8 +291,12 @@ void Water::draw(GLuint shaderProgram) {
 	glUniform3f(glGetUniformLocation(shaderProgram, "light_dir"), -0.3f, 0.2f, -1.0f);
 	glUniform3f(glGetUniformLocation(shaderProgram, "light_color"), 1.0, 1.0, 1.0);
 
-	// Add camera position for fresnel effect
+	// Add depth texture
+	glUniform1i(glGetUniformLocation(shaderProgram, "depth_map"), 5);
+
+	// Add camera info for fresnel effect and shading
 	glUniform3fv(glGetUniformLocation(shaderProgram, "cam_pos"), 1, &Window::cam_pos[0]);
+	glUniform3fv(glGetUniformLocation(shaderProgram, "look_at"), 1, &Window::cam_look_at[0]);
 
 	// Draw Water
 	glBindVertexArray(VAO);
@@ -306,6 +310,12 @@ void Water::draw(GLuint shaderProgram) {
 	glBindTexture(GL_TEXTURE_2D, normalTextureID);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureID);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, refract_DTO);
+
+	// Enable alpha blending for soft edges
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
 	glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
@@ -320,6 +330,7 @@ void Water::draw(GLuint shaderProgram) {
 	glDisable(GL_TEXTURE2);
 	glDisable(GL_TEXTURE3);
 	glDisable(GL_TEXTURE4);
+	glDisable(GL_TEXTURE5);
 }
 
 void Water::init_FBOs() {
@@ -401,6 +412,7 @@ void Water::bind_FBO(int frameBuffer) {
 }
 
 void Water::unbind_FBO() {
+	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::width, Window::height);
 }

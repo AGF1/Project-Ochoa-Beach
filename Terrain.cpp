@@ -9,7 +9,7 @@
 // Default constructor with set scales and heightmap
 Terrain::Terrain() {
 	toWorld = glm::mat4(1.0f);
-	xz_scale = 0.5f;
+	xz_size = 1000.0f;
 	height_scale = 10.0f;
 	ground_translate = -9.0f;
 	heightmap_path = "../assets/SanDiegoTerrain.jpg";
@@ -18,16 +18,29 @@ Terrain::Terrain() {
 	loadTexture();
 }
 
-// Constructor that controls scaling, ground level, and heightmap path
-Terrain::Terrain(float xz_scale, float height_scale, float ground_translate, const char * hmPath) {
+// Constructor that controls square ground size, ground level, and heightmap path. Loads sand texture
+Terrain::Terrain(float xz_size, float height_scale, float ground_translate, const char * hmPath) {
 	toWorld = glm::mat4(1.0f);
-	this->xz_scale = xz_scale;
+	this->xz_size = xz_size;
 	this->height_scale = height_scale;
 	this->ground_translate = ground_translate;
 	heightmap_path = hmPath;
 
 	loadHeightmap();
 	loadTexture();
+}
+
+// Constructor that controls square ground size, ground level
+Terrain::Terrain(float xz_size, float height_scale, float ground_translate, const char * hmPath, const char * texturePath) {
+	toWorld = glm::mat4(1.0f);
+	this->xz_size = xz_size;
+	this->height_scale = height_scale;
+	this->ground_translate = ground_translate;
+	heightmap_path = hmPath;
+	this->texture_path = texturePath;
+
+	loadHeightmap();
+	loadTexture(texturePath);
 }
 
 Terrain::~Terrain() {
@@ -207,8 +220,8 @@ void Terrain::loadHeightmap() {
 	hMapDimensions = glm::vec2(map_width, map_height);
 
 	// Get scaled terrain dimensions in world dimensions
-	float terrWidth = 1000.0;
-	float terrHeight = 1000.0;
+	float terrWidth = xz_size;
+	float terrHeight = xz_size;
 	float centerTerrWidth = terrWidth * 0.5f;
 	float centerTerrHeight = terrHeight * 0.5f;
 
@@ -269,6 +282,32 @@ void Terrain::loadTexture() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Terrain::loadTexture(const char * texturePath) {
+	int twidth, theight, channels;
+	unsigned char* tdata;  // texture pixel data
+
+	// Create ID for texture
+	glGenTextures(1, &textureID);
+
+	// Set this texture to be the one we are working with
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// Some lighting/filtering settings
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);	// Don't let bytes be padded
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	// set GL_MODULATE to mix texture with polygon color for shading
+
+	tdata = loadPPM(texturePath, twidth, theight);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, twidth, theight, 0, GL_RGB, GL_UNSIGNED_BYTE, tdata);
+
+	// Set bi-linear filtering for both minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void Terrain::draw(GLuint shaderProgram) {
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * toWorld;
@@ -288,6 +327,18 @@ void Terrain::draw(GLuint shaderProgram) {
 	// Send clipping plane to relevant shaders
 	glUniform4f(glGetUniformLocation(shaderProgram, "plane"), 0.0, Window::plane_vec_dir, 0.0, Window::water_level);
 
+	// Send lighting info
+	glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"), 1, &Window::cam_pos[0]);
+	glUniform3f(glGetUniformLocation(shaderProgram, "objectColor"), 0.761f, 0.698f, 0.502f);
+	glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0, 1.0, 1.0);
+	glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), -0.3f, 0.2f, -1.0f);
+	glUniform1f(glGetUniformLocation(shaderProgram, "ambientModifier"), 0.5f);
+	glUniform1f(glGetUniformLocation(shaderProgram, "diffuseModifier"), 0.90f);
+	glUniform1f(glGetUniformLocation(shaderProgram, "specularModifier"), 0.09f);
+	glUniform1f(glGetUniformLocation(shaderProgram, "shininess"), 0.1f * 128.0f);
+	glUniform1i(glGetUniformLocation(shaderProgram, "toon"), Window::toon);
+	glUniform1i(glGetUniformLocation(shaderProgram, "illuminate_terr"), Window::illuminate_terr);
+
 	// Draw Terrain
 	glBindVertexArray(VAO);
 	glActiveTexture(GL_TEXTURE0);
@@ -303,6 +354,5 @@ void Terrain::draw(GLuint shaderProgram) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
-
 }
 

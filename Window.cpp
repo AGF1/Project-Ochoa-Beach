@@ -19,7 +19,8 @@ Terrain * coast_ground;
 Water * water;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
-bool toon = true;
+bool Window::toon = true;
+bool Window::illuminate_terr = true;
 
 unsigned int ground_type = 0;	// Default ground to render based off of SD heightmap
 
@@ -36,8 +37,8 @@ unsigned int ground_type = 0;	// Default ground to render based off of SD height
 #define COAST_TERRAIN 2
 
 // Default camera parameters
-glm::vec3 Window::cam_pos(0.0f, 0.0f, 0.0f);		// e  | Position of camera
-glm::vec3 Window::cam_look_at(20.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
+glm::vec3 Window::cam_pos(182.0f, 0.0f, -5.0f);		// e  | Position of camera
+glm::vec3 Window::cam_look_at(-1.0f, 0.0f, -300.0f);	// d  | This is where the camera looks at
 glm::vec3 Window::cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 
 int Window::width;
@@ -54,11 +55,11 @@ void Window::initialize_objects()
 {
 	skybox = new Cube();
 	default_ground = new Terrain();
-	lake_ground = new Terrain(2.5f, 75.0f, -14.0f, "../assets/lake.png");
-	coast_ground = new Terrain(2.5f, 175.0f, -14.0f, "../assets/coast.jpg");
+	lake_ground = new Terrain(1000.0f, 50.0f, -14.0f, "../assets/lake.png", "../assets/textures/grass.ppm");
+	coast_ground = new Terrain(1000.0f, 105.0f, -19.0f, "../assets/coast.jpg", "../assets/textures/rocky.ppm");
 	water = new Water();
 	water->init_FBOs();
-	water_level = water->getWaterLevel();
+	water_level = water->getWaterLevel() + 0.01f;	// Add a small offset for clipping plane to remove glitchy edges
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -83,8 +84,8 @@ void Window::initialize_objects()
 	chair->resize(2.0f);
 	chair->move(180.0f, -1.8f, -5.0f);
 	crab->rotate(0.0f, 1.0f, 0.0f, -glm::pi<float>() / 2.5f);
-	crab->resize(3.0f);
-	crab->move(200.0f, -1.0f, -10.0f);
+	crab->resize(0.5f);
+	crab->move(200.0f, -4.0f, -10.0f);
 	hut->rotate(0.0f, 1.0f, 0.0f, -glm::pi<float>() / 2.0f);
 	hut->resize(15.0f);
 	hut->move(420.0f, 9.2f, -70.0f);
@@ -239,14 +240,16 @@ void Window::render_scene() {
 	// Render
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	skybox->draw(shaderProgram);
-	anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 32.0f), toon);
-	beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 32.0f), toon);
-	chair->draw(shaderProgram, glm::vec3(1.0f, 1.0f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f), toon);
-	crab->draw(shaderProgram, glm::vec3(0.7f, 0.4f, 0.3f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f), toon);
-	hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f), toon);
-	chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f), toon);
-	rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
-	rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
+	if (ground_type == SD_TERRAIN) {
+		anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 32.0f), toon);
+		beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 32.0f), toon);
+		chair->draw(shaderProgram, glm::vec3(1.0f, 1.0f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f), toon);
+		crab->draw(shaderProgram, glm::vec3(0.7f, 0.4f, 0.3f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f), toon);
+		hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f), toon);
+		chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f), toon);
+		rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
+		rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
+	}
 
 	glUseProgram(terrainShader);
 
@@ -347,7 +350,14 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			toon = !toon;
 		}
 		else if (key == GLFW_KEY_T) {
-			ground_type = (ground_type + 1) % 3;	// Toggle between different grounds
+			if (mods == GLFW_MOD_SHIFT)
+			{
+				ground_type = (ground_type + 1) % 3;	// Toggle between different grounds
+			}
+			else
+			{
+				illuminate_terr = !illuminate_terr;
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@ uniform mat4 modelview;
 uniform mat4 model;
 uniform mat4 view;
 uniform vec3 cam_pos;
+uniform vec3 look_at;
 
 // Outputs of the vertex shader are the inputs of the same name of the fragment shader.
 out vec2 texPos;
@@ -18,13 +19,11 @@ out vec4 clipSpace;
 out vec3 eyeVec;
 
 // Constants
-const float tile = 6.0;
+const float tile = 9.0;
 
 void main()
 {
     // OpenGL maintains the D matrix so you only need to multiply by P, V (aka C inverse), and M
-    //gl_Position = projection * modelview * vec4(position.x, position.y, position.z, 1.0);
-	//clipSpace = gl_Position;
 
 	vec4 worldPos = model * vec4(position, 1.0);
 	clipSpace = projection * modelview * vec4(position, 1.0);

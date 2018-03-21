@@ -22,9 +22,10 @@ class Terrain {
 private:
 	glm::mat4 toWorld;
 	const char * heightmap_path;
+	const char * texture_path;
 
 	// Scale size of terrain
-	float xz_scale;
+	float xz_size;
 	float height_scale;
 	float ground_translate;	// Move the ground down
 
@@ -53,6 +54,7 @@ private:
 public:
 	Terrain();
 	Terrain(float, float, float, const char *);
+	Terrain(float, float, float, const char *, const char *);
 	~Terrain();
 
 	void init_buffers();
@@ -61,6 +63,7 @@ public:
 	unsigned char* loadPPM(const char* filename, int& width, int& height);
 	void loadHeightmap();
 	void loadTexture();
+	void loadTexture(const char *);
 	void draw(GLuint);
 };
 
