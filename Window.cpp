@@ -55,7 +55,7 @@ void Window::initialize_objects()
 {
 	skybox = new Cube();
 	default_ground = new Terrain();
-	lake_ground = new Terrain(1000.0f, 50.0f, -14.0f, "../assets/lake.png", "../assets/textures/grass.ppm");
+	lake_ground = new Terrain(1000.0f, 35.0f, -14.0f, "../assets/lake.png", "../assets/textures/grass.ppm");
 	coast_ground = new Terrain(1000.0f, 105.0f, -19.0f, "../assets/coast.jpg", "../assets/textures/rocky.ppm");
 	water = new Water();
 	water->init_FBOs();
