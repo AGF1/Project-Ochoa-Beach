@@ -98,7 +98,7 @@ void main()
 
 		result = (ambient + diffuse + specular) * objectColor;
 
-		if (max(dot(norm, viewDir), 0) < 0.15 && toon)
+		if (max(dot(norm, viewDir), 0) < 0.05 && toon)
 		{
 			color = vec4(0.0, 0.0, 0.0, 1.0);
 		}

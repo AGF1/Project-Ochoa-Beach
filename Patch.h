@@ -20,10 +20,11 @@
 class Patch
 {
 public:
-	Patch(glm::vec3 pts[16]);
+	Patch(glm::vec3 position, glm::vec3 pts[16]);
 	~Patch();
 
-	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon);
+	void reinitialize(bool simple);
+	void draw(GLuint, glm::vec3 objColor, glm::vec3 lightColor, glm::vec3 lightDir, glm::vec3 camPos, glm::vec4 materialParams, bool toon, bool simple);
 	static glm::vec3 genSingleCurvePoint(float t, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 	static glm::vec3 genSingleCurveTangent(float t, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 	static std::pair<glm::vec3, glm::vec3> genSinglePatchPoint(float u, float v, glm::vec3 pts[16]);
@@ -34,6 +35,9 @@ public:
 	std::vector<GLfloat> vertices;
 	std::vector<GLfloat> normals;
 	std::vector<GLuint> indices;
+	std::vector<GLfloat> simpleVerts;
+	std::vector<GLfloat> simpleNorms;
+	std::vector<GLuint> simpleIndices;
 
 	// These variables are needed for the shader program
 	GLuint VBO[2], VAO, EBO;

@@ -19,6 +19,7 @@
 #include "Curve.h"
 #include "Terrain.h"
 #include "Water.h"
+#include "Patch.h"
 
 class Window
 {
@@ -29,6 +30,7 @@ public:
 	static float plane_vec_dir;
 	static bool toon;
 	static bool illuminate_terr;
+	static bool simple_patches;
 	static glm::mat4 P; // P for projection
 	static glm::mat4 V; // V for view
 	static glm::vec3 cam_pos;

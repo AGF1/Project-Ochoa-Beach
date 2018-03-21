@@ -17,10 +17,15 @@ Terrain * default_ground;
 Terrain * lake_ground;
 Terrain * coast_ground;
 Water * water;
+Patch* patch1;
+Patch* patch2;
+Patch* patch3;
+Patch* patch4;
 double cursorPosX = 0.0;
 double cursorPosY = 0.0;
 bool Window::toon = true;
 bool Window::illuminate_terr = true;
+bool Window::simple_patches = false;
 
 unsigned int ground_type = 0;	// Default ground to render based off of SD heightmap
 
@@ -35,6 +40,26 @@ unsigned int ground_type = 0;	// Default ground to render based off of SD height
 #define SD_TERRAIN 0
 #define LAKE_TERRAIN 1
 #define COAST_TERRAIN 2
+
+glm::vec3 patchPts1[16] = { glm::vec3(-9.0f, 0.0f, 9.0f), glm::vec3(-6.0f, 0.0f, 9.0f), glm::vec3(-3.0f, 0.0f, 9.0f), glm::vec3(0.0f, 0.0f, 9.0f),
+glm::vec3(-9.0f, 1.0f, 6.0f), glm::vec3(-6.0f, 1.0f, 6.0f), glm::vec3(-3.0f, 0.5f, 6.0f), glm::vec3(0.0f, 0.0f, 6.0f),
+glm::vec3(-9.0f, 1.0f, 3.0f), glm::vec3(-6.0f, 1.0f, 3.0f), glm::vec3(-3.0f, 0.5f, 3.0f), glm::vec3(0.0f, 0.0f, 3.0f),
+glm::vec3(-9.0f, 0.0f, 0.0f), glm::vec3(-6.0f, 0.0f, 0.0f), glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+
+glm::vec3 patchPts2[16] = { glm::vec3(0.0f, 0.0f, 9.0f), glm::vec3(3.0f, 0.0f, 9.0f), glm::vec3(6.0f, 0.0f, 9.0f), glm::vec3(9.0f, 0.0f, 9.0f),
+glm::vec3(0.0f, 0.0f, 6.0f), glm::vec3(3.0f, -0.5f, 6.0f), glm::vec3(6.0f, -1.0f, 6.0f), glm::vec3(9.0f, -1.0f, 6.0f),
+glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(3.0f, -0.5f, 3.0f), glm::vec3(6.0f, -1.0f, 3.0f), glm::vec3(9.0f, -1.0f, 3.0f),
+glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(6.0f, 0.0f, 0.0f), glm::vec3(9.0f, 0.0f, 0.0f) };
+
+glm::vec3 patchPts3[16] = { glm::vec3(-9.0f, 0.0f, 0.0f), glm::vec3(-6.0f, 0.0f, 0.0f), glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+glm::vec3(-9.0f, -1.0f, -3.0f), glm::vec3(-6.0f, -1.0f, -3.0f), glm::vec3(-3.0f, -0.5f, -3.0f), glm::vec3(0.0f, 0.0f, -3.0f),
+glm::vec3(-9.0f, -1.0f, -6.0f), glm::vec3(-6.0f, -1.0f, -6.0f), glm::vec3(-3.0f, -0.5f, -6.0f), glm::vec3(0.0f, 0.0f, -6.0f),
+glm::vec3(-9.0f, 0.0f, -9.0f), glm::vec3(-6.0f, 0.0f, -9.0f), glm::vec3(-3.0f, 0.0f, -9.0f), glm::vec3(0.0f, 0.0f, -9.0f) };
+
+glm::vec3 patchPts4[16] = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 0.0f, 0.5f), glm::vec3(6.0f, 0.0f, 0.0f), glm::vec3(9.0f, 0.0f, 0.0f),
+glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(3.0f, 0.5f, -3.0f), glm::vec3(6.0f, 1.0f, -3.0f), glm::vec3(9.0f, 1.0f, -3.0f),
+glm::vec3(0.0f, 0.0f, -6.0f), glm::vec3(3.0f, 0.5f, -6.0f), glm::vec3(6.0f, 1.0f, -6.0f), glm::vec3(9.0f, 1.0f, -6.0f),
+glm::vec3(0.0f, 0.0f, -9.0f), glm::vec3(3.0f, 0.0f, -9.0f), glm::vec3(6.0f, 0.0f, -9.0f), glm::vec3(9.0f, 0.0f, -9.0f) };
 
 // Default camera parameters
 glm::vec3 Window::cam_pos(182.0f, 0.0f, -5.0f);		// e  | Position of camera
@@ -74,6 +99,10 @@ void Window::initialize_objects()
 	chair2 = new OBJObject("../assets/object_files/obj.obj");
 	rock = new OBJObject("../assets/object_files/Stone_F_3.obj");
 	rock2 = new OBJObject("../assets/object_files/Stone_Forest_1.obj");
+	patch1 = new Patch(glm::vec3(180.0f, -4.8f, -5.0f), patchPts1);
+	patch2 = new Patch(glm::vec3(180.0f, -4.8f, -5.0f), patchPts2);
+	patch3 = new Patch(glm::vec3(180.0f, -4.8f, -5.0f), patchPts3);
+	patch4 = new Patch(glm::vec3(180.0f, -4.8f, -5.0f), patchPts4);
 	// -/+x: Left/Right    -/+y: Down/Up    -/+z: Forward/Back
 	anchor->rotate(0.0f, 1.0f, 0.0f, 0.0f);
 	anchor->resize(2.0f);
@@ -114,6 +143,10 @@ void Window::clean_up()
 	delete(lake_ground);
 	delete(coast_ground);
 	delete(water);
+	delete(patch1);
+	delete(patch2);
+	delete(patch3);
+	delete(patch4);
 	glDeleteProgram(shaderProgram);
 	glDeleteProgram(terrainShader);
 	glDeleteProgram(waterShader);
@@ -241,14 +274,18 @@ void Window::render_scene() {
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	skybox->draw(shaderProgram);
 	if (ground_type == SD_TERRAIN) {
-		anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.5f, 32.0f), toon);
-		beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 32.0f), toon);
-		chair->draw(shaderProgram, glm::vec3(1.0f, 1.0f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.77f, 76.8f), toon);
-		crab->draw(shaderProgram, glm::vec3(0.7f, 0.4f, 0.3f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.65f, 76.8f), toon);
-		hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 32.0f), toon);
-		chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.7f, 10.0f), toon);
-		rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
-		rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.2f, 1.0f, 0.2f, 16.0f), toon);
+		anchor->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.5f, 32.0f), toon);
+		beachball->draw(shaderProgram, glm::vec3(0.2f, 0.2f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.7f, 32.0f), toon);
+		chair->draw(shaderProgram, glm::vec3(1.0f, 1.0f, 0.9f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.77f, 76.8f), toon);
+		crab->draw(shaderProgram, glm::vec3(0.7f, 0.4f, 0.3f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.65f, 76.8f), toon);
+		hut->draw(shaderProgram, glm::vec3(0.6f, 0.18f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.2f, 32.0f), toon);
+		chair2->draw(shaderProgram, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.7f, 10.0f), toon);
+		rock->draw(shaderProgram, glm::vec3(0.4f, 0.4f, 0.4f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.2f, 16.0f), toon);
+		rock2->draw(shaderProgram, glm::vec3(0.9f, 0.7f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.2f, 16.0f), toon);
+		patch1->draw(shaderProgram, glm::vec3(0.0f, 0.6f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.1f, 16.0f), toon, simple_patches);
+		patch2->draw(shaderProgram, glm::vec3(0.0f, 0.6f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.1f, 16.0f), toon, simple_patches);
+		patch3->draw(shaderProgram, glm::vec3(0.0f, 0.6f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.1f, 16.0f), toon, simple_patches);
+		patch4->draw(shaderProgram, glm::vec3(0.0f, 0.6f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.3f, 0.2f, -1.0f), cam_pos, glm::vec4(0.3f, 1.0f, 0.1f, 16.0f), toon, simple_patches);
 	}
 
 	glUseProgram(terrainShader);
@@ -348,6 +385,15 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		{
 			//Toggle toon shading
 			toon = !toon;
+		}
+		else if (key == GLFW_KEY_2)
+		{
+			//Toggle simple surface patches
+			simple_patches = !simple_patches;
+			patch1->reinitialize(simple_patches);
+			patch2->reinitialize(simple_patches);
+			patch3->reinitialize(simple_patches);
+			patch4->reinitialize(simple_patches);
 		}
 		else if (key == GLFW_KEY_T) {
 			if (mods == GLFW_MOD_SHIFT)
