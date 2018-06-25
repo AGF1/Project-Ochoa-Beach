@@ -7,10 +7,4 @@ CG Project: Beach themed location with the following features:
 	Bezier Surface Patches,
 	Phong Shading of textured polygons
 
-Coming Soon(?):
-	Debug mode,
-	More object textures,
-	Shadows,
-	More robust UI and controls,
-
 Video link: https://www.youtube.com/watch?v=HN73EspXjN8
